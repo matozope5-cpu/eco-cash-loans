@@ -59,7 +59,7 @@
     .header-stats {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 15px;
       align-items: center;
     }
     
@@ -69,6 +69,30 @@
       border-radius: 8px;
       font-size: clamp(14px, 3.5vw, 16px);
       white-space: nowrap;
+    }
+    
+    /* Sound Toggle */
+    .sound-toggle {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+    
+    .sound-toggle.active {
+      background: rgba(40, 167, 69, 0.3);
+      border-color: #28a745;
+    }
+    
+    .sound-toggle:hover {
+      background: rgba(255,255,255,0.3);
     }
     
     /* Controls */
@@ -161,7 +185,7 @@
       margin-left: auto;
     }
     
-    .refresh-btn, .export-btn {
+    .refresh-btn, .export-btn, .auto-refresh-btn {
       padding: clamp(8px, 2vw, 10px) clamp(12px, 2.5vw, 20px);
       border: none;
       border-radius: 6px;
@@ -192,6 +216,154 @@
     
     .export-btn:hover {
       background: #e0a800;
+    }
+    
+    .auto-refresh-btn {
+      background: #6c757d;
+      color: white;
+    }
+    
+    .auto-refresh-btn.active {
+      background: #28a745;
+    }
+    
+    .auto-refresh-btn:hover {
+      opacity: 0.9;
+    }
+    
+    /* Refresh Timer */
+    .refresh-timer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f8f9fa;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 15px;
+    }
+    
+    .timer-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #1c6aa6;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .timer-progress {
+      width: 80px;
+      height: 4px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .timer-progress-bar {
+      height: 100%;
+      background: #1c6aa6;
+      width: 100%;
+      transition: width 1s linear;
+    }
+    
+    /* New Data Banner */
+    .new-data-banner {
+      background: linear-gradient(135deg, #ffd700, #ffc107);
+      color: #333;
+      padding: 12px 20px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      animation: pulse 2s infinite;
+      box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.9; }
+      100% { opacity: 1; }
+    }
+    
+    .new-data-banner .new-count {
+      font-size: 18px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .new-data-banner .new-count span {
+      background: #333;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+    }
+    
+    .mark-seen-btn {
+      background: #333;
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .mark-seen-btn:hover {
+      background: #000;
+      transform: translateY(-2px);
+    }
+    
+    /* Section Headers */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px 20px;
+      background: #f8f9fa;
+      border-bottom: 2px solid #1c6aa6;
+      margin-top: 20px;
+    }
+    
+    .section-header:first-of-type {
+      margin-top: 0;
+    }
+    
+    .section-header h2 {
+      font-size: 18px;
+      color: #1c6aa6;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .section-badge {
+      background: #1c6aa6;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .section-badge.new {
+      background: #ffc107;
+      color: #333;
     }
     
     /* Table Container */
@@ -273,6 +445,11 @@
       color: #004085;
     }
     
+    .badge-new {
+      background: #ffd700;
+      color: #333;
+    }
+    
     /* Empty States */
     .no-data {
       text-align: center;
@@ -313,6 +490,37 @@
       color: #666;
       font-size: clamp(12px, 3vw, 14px);
       margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .delete-link {
+      color: #dc3545;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    
+    .delete-link:hover {
+      background: #dc3545;
+      color: white;
     }
     
     /* Mobile Optimizations */
@@ -346,7 +554,7 @@
         justify-content: stretch;
       }
       
-      .refresh-btn, .export-btn {
+      .refresh-btn, .export-btn, .auto-refresh-btn {
         flex: 1;
         justify-content: center;
       }
@@ -362,6 +570,26 @@
       
       .phone-number, .pin-display {
         font-size: 12px;
+      }
+      
+      .footer {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .footer-left, .footer-right {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .refresh-timer {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .new-data-banner {
+        flex-direction: column;
+        text-align: center;
       }
     }
     
@@ -383,7 +611,7 @@
         flex-direction: column;
       }
       
-      .refresh-btn, .export-btn {
+      .refresh-btn, .export-btn, .auto-refresh-btn {
         width: 100%;
       }
       
@@ -419,6 +647,10 @@
         <div class="stats" id="stats">
           Total: <span id="totalCount">0</span>
         </div>
+        <button class="sound-toggle active" id="soundToggle">
+          <span id="soundIcon">🔊</span>
+          <span id="soundText">Sound On</span>
+        </button>
       </div>
     </header>
     
@@ -435,6 +667,10 @@
       </div>
       
       <div class="action-buttons">
+        <button class="auto-refresh-btn" id="autoRefreshBtn">
+          <span>⏺</span> Auto
+        </button>
+        
         <button class="refresh-btn" id="refreshBtn">
           <span>↻</span> Refresh
         </button>
@@ -445,35 +681,84 @@
       </div>
     </div>
     
-    <div class="table-container">
-      <div id="loadingIndicator" class="loading">
-        <div class="loading-spinner"></div>
-        <p>Loading entries...</p>
+    <!-- Refresh Timer -->
+    <div class="refresh-timer" id="refreshTimer" style="display: none;">
+      <div class="timer-circle" id="timerCircle">20</div>
+      <div class="timer-progress">
+        <div class="timer-progress-bar" id="timerBar" style="width: 100%;"></div>
       </div>
-      
-      <div id="noDataMessage" class="no-data" style="display: none;">
-        <i>📭</i>
-        <p>No entries found</p>
+      <span>Auto-refresh in <span id="timerSeconds">20</span>s</span>
+    </div>
+    
+    <!-- New Data Banner (only shows when there are unseen entries) -->
+    <div id="newDataBanner" class="new-data-banner" style="display: none;">
+      <div class="new-count">
+        <span>✨ NEW</span>
+        <span id="newDataCount">0</span> new entries found!
       </div>
-      
-      <table id="dataTable" style="display: none;">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Phone Number</th>
-            <th>PIN</th>
-            <th>Date & Time</th>
-            <th>Device</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody">
-          <!-- Data will be inserted here -->
-        </tbody>
-      </table>
+      <button class="mark-seen-btn" id="markSeenBtn">
+        <span>✓</span> Mark as Seen
+      </button>
+    </div>
+    
+    <!-- New Data Section (shows only unseen entries) -->
+    <div id="newDataSection" style="display: none;">
+      <div class="section-header">
+        <h2>✨ New Entries <span class="section-badge new" id="newSectionCount">0</span></h2>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Phone Number</th>
+              <th>PIN</th>
+              <th>Date & Time</th>
+              <th>Device</th>
+            </tr>
+          </thead>
+          <tbody id="newTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- All Data Section (shows all entries, including new ones) -->
+    <div id="allDataSection">
+      <div class="section-header">
+        <h2>📋 All Entries <span class="section-badge" id="allSectionCount">0</span></h2>
+      </div>
+      <div class="table-container">
+        <div id="loadingIndicator" class="loading">
+          <div class="loading-spinner"></div>
+          <p>Loading entries...</p>
+        </div>
+        
+        <div id="noDataMessage" class="no-data" style="display: none;">
+          <i>📭</i>
+          <p>No entries found</p>
+        </div>
+        
+        <table id="dataTable" style="display: none;">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Phone Number</th>
+              <th>PIN</th>
+              <th>Date & Time</th>
+              <th>Device</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- Data will be inserted here -->
+          </tbody>
+        </table>
+      </div>
     </div>
     
     <div class="footer">
-      <p>EcoCash Admin • <span id="updateTime"></span></p>
+      <div class="footer-left">
+        <span>EcoCash Admin • <span id="updateTime"></span></span>
+      </div>
     </div>
   </div>
 
@@ -496,6 +781,7 @@
 
       // ==================== DOM ELEMENTS ====================
       const tableBody = document.getElementById('tableBody');
+      const newTableBody = document.getElementById('newTableBody');
       const loadingIndicator = document.getElementById('loadingIndicator');
       const noDataMessage = document.getElementById('noDataMessage');
       const dataTable = document.getElementById('dataTable');
@@ -504,13 +790,190 @@
       const searchInput = document.getElementById('searchInput');
       const refreshBtn = document.getElementById('refreshBtn');
       const exportBtn = document.getElementById('exportBtn');
+      const autoRefreshBtn = document.getElementById('autoRefreshBtn');
       const filterBtns = document.querySelectorAll('.filter-btn');
+      
+      // New data elements
+      const newDataBanner = document.getElementById('newDataBanner');
+      const newDataSection = document.getElementById('newDataSection');
+      const newDataCount = document.getElementById('newDataCount');
+      const newSectionCount = document.getElementById('newSectionCount');
+      const markSeenBtn = document.getElementById('markSeenBtn');
+      const allSectionCount = document.getElementById('allSectionCount');
+      
+      // Sound toggle
+      const soundToggle = document.getElementById('soundToggle');
+      const soundIcon = document.getElementById('soundIcon');
+      const soundText = document.getElementById('soundText');
+      
+      // Timer elements
+      const refreshTimer = document.getElementById('refreshTimer');
+      const timerCircle = document.getElementById('timerCircle');
+      const timerBar = document.getElementById('timerBar');
+      const timerSeconds = document.getElementById('timerSeconds');
+
+      // ==================== STORAGE KEYS ====================
+      const STORAGE_KEYS = {
+        SEEN_ENTRIES: 'ecocash_seen_entries',
+        SOUND_ENABLED: 'ecocash_sound_enabled',
+        AUTO_REFRESH: 'ecocash_auto_refresh'
+      };
 
       // ==================== STATE ====================
       let allEntries = [];
+      let seenEntryIds = new Set(); // Track which entries have been seen
       let filteredEntries = [];
       let currentFilter = 'all';
       let searchTerm = '';
+      
+      // Auto-refresh state
+      let autoRefreshEnabled = false;
+      let refreshInterval = 20; // seconds
+      let timeLeft = refreshInterval;
+      let timerInterval = null;
+      
+      // Sound state
+      let soundEnabled = true;
+
+      // ==================== STORAGE FUNCTIONS ====================
+      function loadSeenEntries() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEYS.SEEN_ENTRIES);
+          if (saved) {
+            const seenArray = JSON.parse(saved);
+            seenEntryIds = new Set(seenArray);
+          }
+        } catch (e) {
+          console.log('Error loading seen entries:', e);
+          seenEntryIds = new Set();
+        }
+      }
+
+      function saveSeenEntries() {
+        try {
+          const seenArray = Array.from(seenEntryIds);
+          localStorage.setItem(STORAGE_KEYS.SEEN_ENTRIES, JSON.stringify(seenArray));
+        } catch (e) {
+          console.log('Error saving seen entries:', e);
+        }
+      }
+
+      function loadSettings() {
+        try {
+          // Load sound setting
+          const soundSaved = localStorage.getItem(STORAGE_KEYS.SOUND_ENABLED);
+          if (soundSaved !== null) {
+            soundEnabled = soundSaved === 'true';
+          }
+          
+          // Load auto-refresh setting
+          const autoSaved = localStorage.getItem(STORAGE_KEYS.AUTO_REFRESH);
+          if (autoSaved !== null) {
+            autoRefreshEnabled = autoSaved === 'true';
+          }
+        } catch (e) {
+          console.log('Error loading settings:', e);
+        }
+      }
+
+      function saveSoundSetting() {
+        localStorage.setItem(STORAGE_KEYS.SOUND_ENABLED, soundEnabled);
+      }
+
+      function saveAutoRefreshSetting() {
+        localStorage.setItem(STORAGE_KEYS.AUTO_REFRESH, autoRefreshEnabled);
+      }
+
+      // ==================== NOTIFICATION SOUND ====================
+      function playNotificationSound() {
+        if (!soundEnabled) return;
+        
+        try {
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.frequency.value = 800;
+          gainNode.gain.value = 0.1;
+          
+          oscillator.start();
+          oscillator.stop(audioContext.currentTime + 0.2);
+          
+          if (audioContext.state === 'suspended') {
+            audioContext.resume();
+          }
+        } catch (e) {
+          console.log('Audio not supported');
+        }
+      }
+
+      // ==================== AUTO-REFRESH FUNCTIONS ====================
+      function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        timeLeft = refreshInterval;
+        updateTimerDisplay();
+        refreshTimer.style.display = 'flex';
+        
+        timerInterval = setInterval(() => {
+          timeLeft--;
+          updateTimerDisplay();
+          
+          if (timeLeft <= 0) {
+            timeLeft = refreshInterval;
+            fetchEntries();
+          }
+        }, 1000);
+      }
+      
+      function stopTimer() {
+        if (timerInterval) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+        refreshTimer.style.display = 'none';
+      }
+      
+      function updateTimerDisplay() {
+        const percent = (timeLeft / refreshInterval) * 100;
+        timerCircle.textContent = timeLeft;
+        timerSeconds.textContent = timeLeft;
+        timerBar.style.width = percent + '%';
+      }
+      
+      function toggleAutoRefresh() {
+        autoRefreshEnabled = !autoRefreshEnabled;
+        saveAutoRefreshSetting();
+        
+        if (autoRefreshEnabled) {
+          autoRefreshBtn.classList.add('active');
+          autoRefreshBtn.innerHTML = '<span>⏹️</span> Auto';
+          startTimer();
+        } else {
+          autoRefreshBtn.classList.remove('active');
+          autoRefreshBtn.innerHTML = '<span>⏺</span> Auto';
+          stopTimer();
+        }
+      }
+
+      // ==================== SOUND TOGGLE ====================
+      function toggleSound() {
+        soundEnabled = !soundEnabled;
+        saveSoundSetting();
+        
+        if (soundEnabled) {
+          soundToggle.classList.add('active');
+          soundIcon.textContent = '🔊';
+          soundText.textContent = 'Sound On';
+        } else {
+          soundToggle.classList.remove('active');
+          soundIcon.textContent = '🔇';
+          soundText.textContent = 'Sound Off';
+        }
+      }
 
       // ==================== HELPER FUNCTIONS ====================
       function formatTimestamp(timestamp) {
@@ -521,21 +984,17 @@
         const diffTime = Math.abs(now - date);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
-        // Today
         if (date.toDateString() === now.toDateString()) {
           return `Today ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
         }
-        // Yesterday
         const yesterday = new Date(now);
         yesterday.setDate(yesterday.getDate() - 1);
         if (date.toDateString() === yesterday.toDateString()) {
           return `Yesterday ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
         }
-        // This week
         if (diffDays <= 7) {
           return date.toLocaleDateString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' });
         }
-        // Older
         return date.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
       }
 
@@ -544,7 +1003,6 @@
         
         const cleaned = phone.replace(/\D/g, '');
         
-        // Format as +263 XXX XXX XXX
         if (cleaned.startsWith('263') && cleaned.length === 12) {
           const match = cleaned.match(/(\d{3})(\d{3})(\d{3})(\d{3})/);
           if (match) {
@@ -605,12 +1063,19 @@
         });
       }
 
-      function updateDisplay() {
+      // Get unseen entries
+      function getUnseenEntries() {
+        return allEntries.filter(entry => !seenEntryIds.has(entry.id));
+      }
+
+      // Display all entries (for the main table)
+      function displayAllEntries() {
         let entries = filterEntriesByTime(allEntries, currentFilter);
         entries = filterEntriesBySearch(entries, searchTerm);
         filteredEntries = entries;
         
         totalCountSpan.textContent = allEntries.length;
+        allSectionCount.textContent = allEntries.length;
         
         if (loadingIndicator.style.display !== 'none') {
           loadingIndicator.style.display = 'none';
@@ -619,15 +1084,55 @@
         if (entries.length === 0) {
           dataTable.style.display = 'none';
           noDataMessage.style.display = 'block';
+        } else {
+          dataTable.style.display = 'table';
+          noDataMessage.style.display = 'none';
+          
+          tableBody.innerHTML = '';
+          entries.forEach((entry, index) => {
+            const row = document.createElement('tr');
+            const timestamp = entry.timestamp ? formatTimestamp(entry.timestamp) : 'N/A';
+            const formattedPhone = formatPhoneNumber(entry.phoneNumber);
+            const deviceIcon = getDeviceIcon(entry.userAgent);
+            
+            // Add visual indicator if this entry is unseen
+            const isUnseen = !seenEntryIds.has(entry.id);
+            
+            row.innerHTML = `
+              <td>${index + 1}${isUnseen ? ' ✨' : ''}</td>
+              <td class="phone-number">${formattedPhone}</td>
+              <td class="pin-display">${entry.pin || 'N/A'}</td>
+              <td class="timestamp">${timestamp}</td>
+              <td><span class="badge ${isUnseen ? 'badge-new' : 'badge-info'}">${deviceIcon} ${isUnseen ? 'New' : 'Seen'}</span></td>
+            `;
+            
+            tableBody.appendChild(row);
+          });
+        }
+        
+        updateTimeSpan.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      }
+
+      // Display unseen entries in the new section
+      function displayUnseenEntries() {
+        const unseenEntries = getUnseenEntries();
+        
+        if (unseenEntries.length === 0) {
+          newDataSection.style.display = 'none';
+          newDataBanner.style.display = 'none';
           return;
         }
         
-        dataTable.style.display = 'table';
-        noDataMessage.style.display = 'none';
+        // Show banner
+        newDataCount.textContent = unseenEntries.length;
+        newDataBanner.style.display = 'flex';
         
-        tableBody.innerHTML = '';
+        // Show section
+        newDataSection.style.display = 'block';
+        newSectionCount.textContent = unseenEntries.length;
         
-        entries.forEach((entry, index) => {
+        newTableBody.innerHTML = '';
+        unseenEntries.forEach((entry, index) => {
           const row = document.createElement('tr');
           const timestamp = entry.timestamp ? formatTimestamp(entry.timestamp) : 'N/A';
           const formattedPhone = formatPhoneNumber(entry.phoneNumber);
@@ -638,13 +1143,30 @@
             <td class="phone-number">${formattedPhone}</td>
             <td class="pin-display">${entry.pin || 'N/A'}</td>
             <td class="timestamp">${timestamp}</td>
-            <td><span class="badge badge-info">${deviceIcon} ${entry.userAgent ? 'Device' : 'Unknown'}</span></td>
+            <td><span class="badge badge-new">✨ New</span></td>
           `;
           
-          tableBody.appendChild(row);
+          newTableBody.appendChild(row);
         });
         
-        updateTimeSpan.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        // Play sound for new entries if enabled
+        if (unseenEntries.length > 0 && soundEnabled) {
+          playNotificationSound();
+        }
+      }
+
+      function markAllAsSeen() {
+        // Add all current entry IDs to seen set
+        allEntries.forEach(entry => {
+          seenEntryIds.add(entry.id);
+        });
+        
+        // Save to localStorage
+        saveSeenEntries();
+        
+        // Update displays
+        displayUnseenEntries();
+        displayAllEntries();
       }
 
       function fetchEntries() {
@@ -663,7 +1185,16 @@
                 ...doc.data()
               });
             });
-            updateDisplay();
+            
+            // Update displays
+            displayUnseenEntries();
+            displayAllEntries();
+            
+            // Reset timer if auto-refresh is enabled
+            if (autoRefreshEnabled) {
+              timeLeft = refreshInterval;
+              updateTimerDisplay();
+            }
           })
           .catch((error) => {
             console.error('Error:', error);
@@ -683,15 +1214,17 @@
           return;
         }
         
-        const headers = ['Phone Number', 'PIN', 'Timestamp', 'Device'];
+        const headers = ['Phone Number', 'PIN', 'Timestamp', 'Device', 'Status'];
         const csvRows = [headers.join(',')];
         
         filteredEntries.forEach(entry => {
+          const status = seenEntryIds.has(entry.id) ? 'Seen' : 'New';
           const row = [
             `"${entry.phoneNumber || ''}"`,
             `"${entry.pin || ''}"`,
             `"${entry.timestamp ? entry.timestamp.toDate().toLocaleString() : ''}"`,
-            `"${entry.userAgent || ''}"`
+            `"${entry.userAgent || ''}"`,
+            `"${status}"`
           ];
           csvRows.push(row.join(','));
         });
@@ -711,7 +1244,7 @@
       // ==================== EVENT LISTENERS ====================
       searchInput.addEventListener('input', (e) => {
         searchTerm = e.target.value;
-        updateDisplay();
+        displayAllEntries();
       });
 
       filterBtns.forEach(btn => {
@@ -719,18 +1252,43 @@
           filterBtns.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           currentFilter = btn.dataset.filter;
-          updateDisplay();
+          displayAllEntries();
         });
       });
 
       refreshBtn.addEventListener('click', fetchEntries);
       exportBtn.addEventListener('click', exportToCSV);
+      autoRefreshBtn.addEventListener('click', toggleAutoRefresh);
+      soundToggle.addEventListener('click', toggleSound);
+      markSeenBtn.addEventListener('click', markAllAsSeen);
 
       // ==================== INITIAL LOAD ====================
-      fetchEntries();
+      // Load saved state
+      loadSeenEntries();
+      loadSettings();
       
-      // Auto-refresh every 30 seconds
-      setInterval(fetchEntries, 30000);
+      // Apply sound setting
+      if (soundEnabled) {
+        soundToggle.classList.add('active');
+        soundIcon.textContent = '🔊';
+        soundText.textContent = 'Sound On';
+      } else {
+        soundToggle.classList.remove('active');
+        soundIcon.textContent = '🔇';
+        soundText.textContent = 'Sound Off';
+      }
+      
+      // Apply auto-refresh setting
+      if (autoRefreshEnabled) {
+        autoRefreshBtn.classList.add('active');
+        autoRefreshBtn.innerHTML = '<span>⏹️</span> Auto';
+        startTimer();
+      } else {
+        autoRefreshBtn.classList.remove('active');
+        autoRefreshBtn.innerHTML = '<span>⏺</span> Auto';
+      }
+      
+      fetchEntries();
 
       // Add pull-to-refresh support for mobile
       let touchStartY = 0;
